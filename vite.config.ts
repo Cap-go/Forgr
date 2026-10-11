@@ -14,6 +14,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@capgo/oauth-loopback': path.resolve(import.meta.dirname, 'plugins/oauth-loopback/src/index.ts'),
+      '@capgo/http-stream': path.resolve(import.meta.dirname, 'plugins/http-stream/src/index.ts'),
     },
   },
 });

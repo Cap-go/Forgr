@@ -48,7 +48,8 @@ let package = Package(
         .package(name: "CapgoCapacitorUpdater", path: "../../../node_modules/@capgo/capacitor-updater"),
         .package(name: "CapgoCapacitorVolumeButtons", path: "../../../node_modules/@capgo/capacitor-volume-buttons"),
         .package(name: "CapgoOauthLoopback", path: "../../../node_modules/@capgo/oauth-loopback"),
-        .package(name: "CapacitorSecureStoragePlugin", path: "../../../node_modules/capacitor-secure-storage-plugin")
+        .package(name: "CapacitorSecureStoragePlugin", path: "../../../node_modules/capacitor-secure-storage-plugin"),
+        .package(name: "CapgoHttpStream", path: "../../../node_modules/@capgo/http-stream")
     ],
     targets: [
         .target(
@@ -92,7 +93,8 @@ let package = Package(
                 .product(name: "CapgoCapacitorUpdater", package: "CapgoCapacitorUpdater"),
                 .product(name: "CapgoCapacitorVolumeButtons", package: "CapgoCapacitorVolumeButtons"),
                 .product(name: "CapgoOauthLoopback", package: "CapgoOauthLoopback"),
-                .product(name: "CapacitorSecureStoragePlugin", package: "CapacitorSecureStoragePlugin")
+                .product(name: "CapacitorSecureStoragePlugin", package: "CapacitorSecureStoragePlugin"),
+                .product(name: "CapgoHttpStream", package: "CapgoHttpStream")
             ]
         )
     ]

@@ -875,7 +875,7 @@ export class Shell {
           onPhase: (phase, detail) => {
             if (phase === 'connecting') activity.step('Connecting to ChatGPT');
             else if (phase === 'waiting') activity.step('Thinking');
-            else if (phase === 'connected-buffered') activity.step('Thinking (slower connection, the answer arrives at once)');
+            else if (phase === 'connected-buffered') activity.step('ChatGPT is working (this build shows the result when it is done)');
             else if (phase === 'tool_begin') activity.step(beginLabel(detail ?? ''));
           },
           onReasoning: (delta) => {

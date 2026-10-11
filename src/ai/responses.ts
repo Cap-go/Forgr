@@ -1,4 +1,5 @@
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
+import { HttpStream } from '@capgo/http-stream';
 import { MODELS_API_URL, RESPONSES_API_URL, RESPONSES_MODEL } from '../config';
 import type { ConversationItem, ParsedTurn, StreamEvent, ToolCallRequest } from './types';
 
@@ -10,6 +11,8 @@ export interface ResponseRequest {
   tools?: unknown[];
   /** Aborts the HTTP request itself, so Stop is immediate. */
   signal?: AbortSignal;
+  /** Called when only the slow, all-at-once native request is available. */
+  onBuffered?: () => void;
 }
 
 export function isUsageLimitError(body: string): boolean {
@@ -63,7 +66,7 @@ export async function createResponseStream(req: ResponseRequest): Promise<AsyncI
 /** Metadata about one model request (no prompt or reply text), for diagnostics. */
 export interface RequestDiag {
   model: string;
-  path: 'stream' | 'buffered';
+  path: 'stream' | 'buffered' | 'native-stream';
   status?: number;
   startedAt: number;
   ms?: number;
@@ -100,37 +103,41 @@ async function openStream(req: ResponseRequest): Promise<AsyncIterable<StreamEve
     store: false,
   });
 
-  // Stream through the WebView so text and tool progress arrive live and the
-  // connection is never idle. WKWebView hides failed responses without CORS
-  // headers as an opaque network error: replay those natively to read the
-  // real status and message.
+  const headers = {
+    Authorization: `Bearer ${req.accessToken}`,
+    'Content-Type': 'application/json',
+    Accept: 'text/event-stream',
+  };
+
+  // Best path on iPhone: native streaming (no CORS, live events).
+  if (Capacitor.isNativePlatform() && Capacitor.isPluginAvailable('HttpStream')) {
+    diag.path = 'native-stream';
+    try {
+      return await nativeStream(body, headers, diag, req.signal);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // Real API answers (4xx/5xx, usage limits) and Stop are final; a plugin
+      // or connection failure before any response falls back to the old path.
+      if (req.signal?.aborted || diag.status !== undefined) throw error;
+      diag.fetchError = `native-stream: ${message}`;
+      return bufferedRequest(req, body, diag);
+    }
+  }
+
+  // Older native builds: the WebView fetch is refused by CORS, so after the
+  // first failure go straight to the native request (it only returns once
+  // ChatGPT has finished, so say so right away).
+  if (Capacitor.isNativePlatform() && webFetchBlocked) return bufferedRequest(req, body, diag);
+
   let res: Response;
   try {
-    res = await fetch(RESPONSES_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${req.accessToken}`,
-        'Content-Type': 'application/json',
-        Accept: 'text/event-stream',
-      },
-      body,
-      signal: req.signal,
-    });
+    res = await fetch(RESPONSES_API_URL, { method: 'POST', headers, body, signal: req.signal });
   } catch (error) {
     if (req.signal?.aborted) throw new Error('Stopped');
     diag.fetchError = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
     if (!Capacitor.isNativePlatform()) throw error;
-    diag.path = 'buffered';
-    const native = await httpRequest(RESPONSES_API_URL, 'POST', req.accessToken, body);
-    diag.status = native.status;
-    diag.bytes = native.text.length;
-    if (native.status < 200 || native.status >= 300) {
-      diag.error = native.text.slice(0, 300);
-      throw new Error(formatApiError(native.status, native.text));
-    }
-    const stream = new Response(native.text).body;
-    if (!stream) throw new Error('ChatGPT returned an empty response');
-    return parseSseStream(stream, true, diag);
+    webFetchBlocked = true;
+    return bufferedRequest(req, body, diag);
   }
   diag.status = res.status;
   if (!res.ok) {
@@ -140,6 +147,68 @@ async function openStream(req: ResponseRequest): Promise<AsyncIterable<StreamEve
   }
   if (!res.body) throw new Error('ChatGPT returned an empty response');
   return parseSseStream(res.body, false, diag);
+}
+
+let webFetchBlocked = false;
+
+async function bufferedRequest(req: ResponseRequest, body: string, diag: RequestDiag): Promise<AsyncIterable<StreamEvent>> {
+  diag.path = 'buffered';
+  req.onBuffered?.();
+  const native = await httpRequest(RESPONSES_API_URL, 'POST', req.accessToken, body);
+  if (req.signal?.aborted) throw new Error('Stopped');
+  diag.status = native.status;
+  diag.bytes = native.text.length;
+  if (native.status < 200 || native.status >= 300) {
+    diag.error = native.text.slice(0, 300);
+    throw new Error(formatApiError(native.status, native.text));
+  }
+  const stream = new Response(native.text).body;
+  if (!stream) throw new Error('ChatGPT returned an empty response');
+  return parseSseStream(stream, true, diag);
+}
+
+/** Streams the response through the native HttpStream plugin, chunk by chunk. */
+async function nativeStream(body: string, headers: Record<string, string>, diag: RequestDiag, signal?: AbortSignal): Promise<AsyncIterable<StreamEvent>> {
+  const id = crypto.randomUUID();
+  const encoder = new TextEncoder();
+  let controller!: ReadableStreamDefaultController<Uint8Array>;
+  let closed = false;
+  const stream = new ReadableStream<Uint8Array>({
+    start(c) { controller = c; },
+    cancel() { void HttpStream.cancel({ id }); },
+  });
+  let resolveStatus!: (status: number) => void;
+  let rejectStatus!: (error: Error) => void;
+  const statusReady = new Promise<number>((resolve, reject) => { resolveStatus = resolve; rejectStatus = reject; });
+  const handles = await Promise.all([
+    HttpStream.addListener('response', (e) => { if (e.id === id) resolveStatus(e.status); }),
+    HttpStream.addListener('chunk', (e) => { if (e.id === id && !closed) controller.enqueue(encoder.encode(e.data)); }),
+    HttpStream.addListener('end', (e) => {
+      if (e.id !== id) return;
+      closed = true;
+      controller.close();
+      cleanup();
+    }),
+    HttpStream.addListener('error', (e) => {
+      if (e.id !== id) return;
+      const error = new Error(signal?.aborted ? 'Stopped' : e.message);
+      rejectStatus(error);
+      if (!closed) controller.error(error);
+      closed = true;
+      cleanup();
+    }),
+  ]);
+  const cleanup = () => handles.forEach((h) => void h.remove());
+  signal?.addEventListener('abort', () => void HttpStream.cancel({ id }), { once: true });
+  await HttpStream.start({ id, url: RESPONSES_API_URL, method: 'POST', headers, body, timeout: 300 });
+  const status = await statusReady;
+  diag.status = status;
+  if (status < 200 || status >= 300) {
+    const text = await new Response(stream).text();
+    diag.error = text.slice(0, 300);
+    throw new Error(formatApiError(status, text));
+  }
+  return parseSseStream(stream, false, diag);
 }
 
 /** Dropped connections and timeouts worth retrying automatically. */

@@ -44,6 +44,7 @@
         "@capgo/capacitor-speech-synthesis": "^8",
         "@capgo/capacitor-updater": "^8.52.1",
         "@capgo/capacitor-volume-buttons": "^8",
+        "@capgo/http-stream": "file:./plugins/http-stream",
         "@capgo/oauth-loopback": "file:./plugins/oauth-loopback",
         "capacitor-secure-storage-plugin": "^0.13.0",
       },
@@ -150,6 +151,8 @@
     "@capgo/capacitor-updater": ["@capgo/capacitor-updater@8.52.1", "", { "peerDependencies": { "@capacitor/core": "^8.0.0" } }, "sha512-bvI6kUms5QJXtWznv7JoTdmKlmjobPYIW1santxgn5AZAciXpiDXXcwdaK2sjgK1NyuzREwZw68vzUCWGhrbAA=="],
 
     "@capgo/capacitor-volume-buttons": ["@capgo/capacitor-volume-buttons@8.1.4", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-TAkz8y/YuNZDMAtwsoKtK0KsSVf5ubGDjakyNw7Xzo2B57XqyhCHjzT6q4lr1e3qpsc9fD+qhgi0YyTMftz+PA=="],
+
+    "@capgo/http-stream": ["@capgo/http-stream@file:plugins/http-stream", { "peerDependencies": { "@capacitor/core": "^8.0.0" } }],
 
     "@capgo/oauth-loopback": ["@capgo/oauth-loopback@file:plugins/oauth-loopback", { "devDependencies": { "@capacitor/core": "^8.5.3", "typescript": "^5.9.3" }, "peerDependencies": { "@capacitor/core": "^8.0.0" } }],
 

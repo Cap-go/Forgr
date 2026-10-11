@@ -51,6 +51,7 @@ export async function runAgent(
         instructions,
         tools: [toolNamespaceFor(ctx)],
         signal,
+        onBuffered: () => hooks.onPhase?.('connected-buffered'),
       });
       let parsed: ParsedTurn | undefined;
       try {

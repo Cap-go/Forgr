@@ -17,8 +17,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "paths": {
-      "@capgo/oauth-loopback": ["./plugins/oauth-loopback/src/index.ts"]
+      "@capgo/oauth-loopback": ["./plugins/oauth-loopback/src/index.ts"],
+      "@capgo/http-stream": ["./plugins/http-stream/src/index.ts"]
     }
   },
-  "include": ["src", "tests", "plugins/oauth-loopback/src"]
+  "include": ["src", "tests", "plugins/oauth-loopback/src", "plugins/http-stream/src"]
 }

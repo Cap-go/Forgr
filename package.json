@@ -1,7 +1,7 @@
 {
   "name": "mapp",
   "private": true,
-  "version": "1.2.2",
+  "version": "1.2.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -52,7 +52,8 @@
     "@capgo/capacitor-updater": "^8.52.1",
     "@capgo/capacitor-volume-buttons": "^8",
     "@capgo/oauth-loopback": "file:./plugins/oauth-loopback",
-    "capacitor-secure-storage-plugin": "^0.13.0"
+    "capacitor-secure-storage-plugin": "^0.13.0",
+    "@capgo/http-stream": "file:./plugins/http-stream"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
