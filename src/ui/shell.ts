@@ -16,6 +16,7 @@ import { STARTER_APPS } from '../apps/templates';
 import { APP_LINKS, PREF_KEYS } from '../config';
 import { lifecycle } from '../lifecycle';
 import { Activity } from './activity';
+import capgoSvg from '../assets/capgo.svg?raw';
 import { renderMarkdown } from './markdown';
 import { exportFile } from '../files';
 import { Clipboard } from '@capacitor/clipboard';
@@ -974,9 +975,12 @@ export class Shell {
   private showSettings(): void {
     this.showModal((close) => {
       const bundle = h('span', {}, '');
+      const updateInfo = h('span', { class: 'row-sub' }, `Mapp ${__APP_VERSION__} · instant delta updates`);
       if (Capacitor.isNativePlatform()) {
-        void CapacitorUpdater.current().then((c) => {
-          bundle.textContent = ` · Live update ${c.bundle.version === 'builtin' ? 'built-in' : c.bundle.version}`;
+        void Promise.all([CapacitorUpdater.current(), CapacitorUpdater.getChannel().catch(() => null)]).then(([c, channel]) => {
+          const version = c.bundle.version === 'builtin' ? `${c.native} (built-in)` : c.bundle.version;
+          bundle.textContent = ` · Live update ${version}`;
+          updateInfo.textContent = `Live update ${version}${channel?.channel ? ` · ${channel.channel}` : ''} · delta updates`;
         }).catch(() => undefined);
       }
       const open = (url: string) => {
@@ -1018,6 +1022,15 @@ export class Shell {
           link('Privacy Policy', APP_LINKS.privacy),
           link('Terms of Use', APP_LINKS.terms),
           link('Support', APP_LINKS.support)),
+        h('div', { class: 'section-label' }, 'Updates'),
+        h('div', { class: 'group' },
+          h('button', { class: 'row capgo-row', onclick: () => open(CAPGO_URL) },
+            capgoLogo(),
+            h('div', { class: 'row-body' },
+              h('span', { class: 'row-title' }, 'Live updates by Capgo'),
+              updateInfo),
+            icon('chevron', 'icon row-icon'))),
+        h('p', { class: 'group-footer' }, 'Mapp gets new features instantly with Capgo live updates, downloading only the files that changed. Tap to learn more.'),
         h('p', { class: 'group-footer center' }, `Mapp ${__APP_VERSION__}`, bundle),
       ];
     });
@@ -1087,4 +1100,15 @@ function beginLabel(name: string): string {
     case 'list_skills': return 'Checking Capgo skills';
     default: return 'Preparing the next step';
   }
+}
+
+const CAPGO_URL = 'https://capgo.app/?utm_source=mapp&utm_medium=app&utm_campaign=settings';
+
+function capgoLogo(): Element {
+  const tpl = document.createElement('template');
+  tpl.innerHTML = capgoSvg.trim(); // bundled static asset, not user content
+  const logo = tpl.content.firstElementChild as SVGElement;
+  logo.setAttribute('class', 'capgo-logo');
+  logo.setAttribute('aria-hidden', 'true');
+  return logo;
 }

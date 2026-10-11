@@ -659,3 +659,6 @@ h5.md-h, h6.md-h { font-size: 15px; color: var(--secondary); }
 .md-table th, .md-table td { padding: 7px 10px; text-align: left; border-bottom: 0.5px solid var(--separator); white-space: nowrap; }
 .md-table th { font-weight: 600; background: var(--fill); }
 .md-table tr:last-child td { border-bottom: none; }
+
+.capgo-row { min-height: 60px; }
+.capgo-logo { width: 34px; height: 34px; flex: none; border-radius: 8px; box-shadow: 0 0 0 0.5px var(--separator); }
