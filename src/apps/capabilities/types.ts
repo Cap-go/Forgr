@@ -12,6 +12,8 @@ export interface CapabilityContext {
   host: {
     goHome(): void;
     openEditor(prompt?: string): void;
+    /** Secure entry sheet over the app; the value goes straight to the Keychain. */
+    requestSecret(spec: { name: string; label: string; kind: import('../../secrets').SecretKind; username?: string; appName: string }): Promise<{ saved: boolean }>;
   };
 }
 

@@ -48,6 +48,16 @@ export async function scriptedAgent(
   hooks: AgentHooks,
 ): Promise<string> {
   const ask = history[history.length - 1]?.content.toLowerCase() ?? '';
+  if (ask.includes('stripe')) {
+    hooks.onPhase?.('connecting');
+    await wait(400);
+    hooks.onPhase?.('waiting');
+    const period = await ctx.askUser?.({ question: 'Which period should the dashboard show first?', options: ['Today', 'Last 7 days', 'This month'], allowOther: true, multiple: false });
+    const saved = await ctx.requestSecret?.({ name: 'STRIPE_SECRET_KEY', label: 'Stripe secret key', help: 'Stripe Dashboard → Developers → API keys. A restricted read-only key is best.', kind: 'api_key', target: 'device' });
+    const answer = `Got it: ${period ?? 'default period'}, key ${saved?.saved ? 'saved' : 'skipped'}.`;
+    await stream(hooks, answer);
+    return answer;
+  }
   if (ask.includes('workout')) {
     hooks.onPhase?.('connecting');
     await wait(500);

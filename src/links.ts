@@ -66,4 +66,4 @@ export function buildLink(action: string, params: Record<string, string>): strin
 }
 
 /** Tools an auto-started link run may use: it can create a new app, nothing else. */
-export const LINK_SAFE_TOOLS = new Set(['create_app', 'read_app', 'edit_app', 'write_app', 'get_app_logs', 'list_skills', 'read_skill']);
+export const LINK_SAFE_TOOLS = new Set(['create_app', 'read_app', 'edit_app', 'write_app', 'get_app_logs', 'list_skills', 'read_skill', 'ask_user']);

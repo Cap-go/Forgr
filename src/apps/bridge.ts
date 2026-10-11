@@ -9,6 +9,7 @@ export interface LogEntry {
 }
 
 export interface BridgeHost {
+  requestSecret(spec: { name: string; label: string; kind: import('../secrets').SecretKind; username?: string; appName: string }): Promise<{ saved: boolean }>;
   goHome(): void;
   openEditor(prompt?: string): void;
   openSwitcher(): void;
@@ -54,6 +55,7 @@ export class AppBridge {
       host: {
         goHome: () => this.host.goHome(),
         openEditor: (prompt) => this.host.openEditor(prompt),
+        requestSecret: (spec) => this.host.requestSecret(spec),
       },
     };
     window.addEventListener('message', this.onMessage);

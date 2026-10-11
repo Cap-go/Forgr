@@ -16,6 +16,8 @@ import { STARTER_APPS } from '../apps/templates';
 import { APP_LINKS, PREF_KEYS } from '../config';
 import { lifecycle } from '../lifecycle';
 import { Activity } from './activity';
+import { questionCard, secretCard, type SecretSpec } from './cards';
+import { deleteSecret, listSecrets, looksLikeSecret, normalizeSecretName, saveSecret } from '../secrets';
 import { takeRequestLog } from '../ai/responses';
 import { reportRun } from '../diag';
 import { PinchDetector } from './gesture';
@@ -273,6 +275,14 @@ export class Shell {
       goHome: () => this.goHome(),
       openEditor: (prompt) => this.openChat(app.id, prompt),
       openSwitcher: () => this.openSwitcher(),
+      requestSecret: (spec) => this.secretSheet({
+        name: spec.name,
+        label: spec.label,
+        kind: spec.kind,
+        username: spec.username,
+        help: `${spec.appName} needs this.`,
+        destination: 'in the iOS Keychain',
+      }),
     });
     this.frame = frame;
     this.stopSafeArea = syncSafeArea(frame);
@@ -623,9 +633,65 @@ export class Shell {
       this.showSignIn();
       return;
     }
+    const secret = looksLikeSecret(text);
+    if (secret) {
+      this.offerSecureSave(text, secret.suggestedName, secret.value);
+      return;
+    }
     this.input.value = '';
     this.autosize();
     void this.run(text);
+  }
+
+  /** The message looks like a key or password: keep it out of the chat. */
+  private offerSecureSave(text: string, suggestedName: string, value: string): void {
+    this.input.blur();
+    this.showModal((close) => {
+      const name = h('input', { class: 'card-input', value: suggestedName, autocapitalize: 'characters', spellcheck: 'false' });
+      return [
+        h('h2', {}, 'This looks like a secret'),
+        h('p', { class: 'muted' }, 'Keys and passwords should not go in the chat. Save it securely and your apps can use it without the AI ever seeing it.'),
+        h('label', { class: 'field-label' }, 'Save as', name),
+        h('button', { class: 'btn mono', onclick: async () => {
+          const secretName = normalizeSecretName(name.value) || suggestedName;
+          await saveSecret({ name: secretName, label: secretName, kind: 'api_key' }, value);
+          close();
+          this.input.value = `I saved ${secretName} securely. Use it where it is needed.`;
+          this.autosize();
+          this.toast(`Saved ${secretName}`);
+        } }, 'Save securely'),
+        h('button', { class: 'btn plain', onclick: () => {
+          close();
+          this.input.value = '';
+          this.autosize();
+          void this.run(text);
+        } }, 'Send anyway'),
+      ];
+    });
+  }
+
+  /** Secure entry sheet shown over a running mini app (mapp.secrets.request). */
+  private secretSheet(spec: SecretSpec): Promise<{ saved: boolean }> {
+    return new Promise((resolve) => {
+      let settled = false;
+      this.showModal((close) => {
+        const card = secretCard(spec, (value, username) => saveSecret({ name: spec.name, label: spec.label, kind: spec.kind, username }, value));
+        void card.done.then((saved) => {
+          settled = true;
+          resolve({ saved });
+          window.setTimeout(close, saved ? 700 : 0);
+        });
+        return [card.el];
+      });
+      // Closing the sheet by tapping outside counts as skip.
+      const observer = new MutationObserver(() => {
+        if (this.modalLayer.classList.contains('hidden')) {
+          observer.disconnect();
+          if (!settled) resolve({ saved: false });
+        }
+      });
+      observer.observe(this.modalLayer, { attributes: true, attributeFilter: ['class'] });
+    });
   }
 
   private async run(text: string, retry = false, fromLink = false): Promise<void> {
@@ -684,6 +750,32 @@ export class Shell {
           },
           settle: () => new Promise((r) => window.setTimeout(r, 1200)),
           ...(fromLink ? { restricted: { createdIds: new Set<string>() } } : {}),
+          requestSecret: async (spec) => {
+            activity.step(`Waiting for ${spec.label}`);
+            const card = secretCard({
+              ...spec,
+              destination: spec.target === 'cloud' ? 'in your Mapp Cloud' : 'in the iOS Keychain',
+            }, async (value, username) => {
+              if (spec.target === 'cloud') await cloud.call('PUT', `/v1/secrets/${spec.name}`, { value });
+              else await saveSecret({ name: spec.name, label: spec.label, kind: spec.kind, username: username ?? spec.username }, value);
+            });
+            this.messagesEl.insertBefore(card.el, status);
+            this.scrollMessages();
+            const saved = await card.done;
+            conversation.messages.push({ role: 'assistant', content: `Asked for ${spec.label} (${spec.name}): ${saved ? 'saved securely' : 'skipped'}.` });
+            return { saved };
+          },
+          askUser: async (q) => {
+            activity.step('Waiting for your answer');
+            const card = questionCard(q);
+            this.messagesEl.insertBefore(card.el, status);
+            this.scrollMessages();
+            haptic();
+            const answer = await card.done;
+            conversation.messages.push({ role: 'assistant', content: q.question }, { role: 'user', content: answer ?? '(skipped)' });
+            void appStore.writeChat(conversation.key, conversation.messages);
+            return answer;
+          },
         },
         {
           onDelta: (delta) => {
@@ -868,6 +960,15 @@ export class Shell {
           email
             ? h('button', { class: 'row danger', onclick: async () => { await session.signOut(); await cloud.signOut(); close(); this.toast('Signed out'); } }, h('span', { class: 'row-title' }, 'Sign Out'))
             : h('button', { class: 'row accent', onclick: () => { close(); this.showSignIn(); } }, h('span', { class: 'row-title' }, 'Connect ChatGPT'))),
+        h('div', { class: 'section-label' }, 'Secrets'),
+        h('div', { class: 'group' },
+          ...(listSecrets().length
+            ? listSecrets().map((sec) => h('div', { class: 'row' },
+              icon('lock', 'icon row-icon'),
+              h('div', { class: 'row-body' }, h('span', { class: 'row-title' }, sec.label), h('span', { class: 'row-sub' }, sec.name + (sec.username ? ` · ${sec.username}` : ''))),
+              h('button', { class: 'text-btn danger', 'aria-label': `Delete ${sec.name}`, onclick: async () => { await deleteSecret(sec.name); close(); this.toast(`Deleted ${sec.name}`); } }, 'Delete')))
+            : [h('div', { class: 'row' }, h('span', { class: 'row-sub' }, 'No saved keys or passwords yet.'))])),
+        h('p', { class: 'group-footer' }, 'Stored in the iOS Keychain. The AI never sees them; your apps use them when they call their service.'),
         h('div', { class: 'section-label' }, 'Gestures'),
         h('div', { class: 'group' },
           h('button', { class: 'row', onclick: () => { close(); this.showOnboarding(); } }, h('span', { class: 'row-title' }, 'Show the Tour Again'), icon('chevron', 'icon row-icon'))),

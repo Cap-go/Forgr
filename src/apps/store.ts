@@ -21,6 +21,8 @@ export interface MiniAppMeta {
   updatedAt: number;
   /** Increments on each code change; older versions are kept for undo. */
   version: number;
+  /** 'link' when created by a request from an outside link: no secrets for it. */
+  origin?: 'chat' | 'link';
 }
 
 /*
@@ -155,7 +157,7 @@ class AppStore {
     this.emit();
   }
 
-  async create(input: { name: string; emoji?: string; color?: string; description?: string; html: string }): Promise<MiniAppMeta> {
+  async create(input: { name: string; emoji?: string; color?: string; description?: string; html: string; origin?: 'chat' | 'link' }): Promise<MiniAppMeta> {
     await this.load();
     const now = Date.now();
     const app: MiniAppMeta = {
@@ -167,6 +169,7 @@ class AppStore {
       createdAt: now,
       updatedAt: now,
       version: 1,
+      origin: input.origin ?? 'chat',
     };
     await writeText(`${appDir(app.id)}/index.html`, input.html);
     await writeText(`${appDir(app.id)}/versions/1.html`, input.html);

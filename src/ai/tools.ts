@@ -2,6 +2,7 @@ import { appStore } from '../apps/store';
 import { getLogs } from '../apps/bridge';
 import { capabilityNames } from '../apps/capabilities';
 import { LINK_SAFE_TOOLS } from '../links';
+import { looksLikeSecret, normalizeSecretName, SECRET_NAME, type SecretKind } from '../secrets';
 import { cloud, memberName } from '../cloud/client';
 import { listSkills, readSkill } from '../skills';
 
@@ -106,9 +107,27 @@ const TOOLS = [
   },
   {
     type: 'function',
-    name: 'set_secret',
-    description: 'Store a secret (API key) the user gave you, available to their functions as env.NAME. Never put secrets in app HTML.',
-    parameters: obj({ name: str('UPPER_SNAKE_CASE'), value: str('Secret value') }, ['name', 'value']),
+    name: 'request_secret',
+    description: 'Ask the user for an API key, token or password through a secure card. The value goes to the Keychain (target "device", for apps) or the user\'s cloud secrets (target "cloud", for server functions). You never see the value; you only learn whether it was saved.',
+    parameters: obj({
+      name: str('UPPER_SNAKE_CASE, e.g. STRIPE_SECRET_KEY'),
+      label: str('What it is, shown to the user, e.g. "Stripe secret key"'),
+      help: str('One short sentence: where to find it or why it is needed'),
+      kind: { type: 'string', enum: ['api_key', 'password', 'token', 'text'] },
+      username: str('For passwords: the account/username it belongs to (optional)'),
+      target: { type: 'string', enum: ['device', 'cloud'], description: 'device = mini apps read it; cloud = server functions read it as env.NAME' },
+    }, ['name', 'label', 'help', 'kind', 'target']),
+  },
+  {
+    type: 'function',
+    name: 'ask_user',
+    description: 'Ask the user one question as a card with suggested answers, a free text answer and Skip. Use only for real decisions you cannot sensibly default. Returns their answer or skipped.',
+    parameters: obj({
+      question: str('Short question'),
+      options: { type: 'array', items: { type: 'string' }, description: '2 to 5 concrete suggested answers' },
+      allow_other: { type: 'boolean', description: 'Let the user type their own answer (usually true)' },
+      multiple: { type: 'boolean', description: 'Allow choosing several options' },
+    }, ['question', 'options', 'allow_other', 'multiple']),
   },
   {
     type: 'function',
@@ -148,6 +167,10 @@ export interface ToolContext {
    * cloud data or spaces.
    */
   restricted?: { createdIds: Set<string> };
+  /** Shows a secure entry card; resolves without the value. */
+  requestSecret?(spec: { name: string; label: string; help: string; kind: SecretKind; username?: string; target: 'device' | 'cloud' }): Promise<{ saved: boolean }>;
+  /** Shows a question card; resolves with the answer, or null when skipped. */
+  askUser?(question: { question: string; options: string[]; allowOther: boolean; multiple: boolean }): Promise<string | null>;
 }
 
 /** The tool namespace offered to the model, narrowed for link-started runs. */
@@ -165,7 +188,7 @@ export async function runTool(
   const id = String(args.id ?? '');
   if (ctx.restricted) {
     if (!LINK_SAFE_TOOLS.has(name)) throw new Error(`${name} is not available for requests started from a link.`);
-    if (name !== 'create_app' && name !== 'list_skills' && name !== 'read_skill' && !ctx.restricted.createdIds.has(id)) {
+    if (!['create_app', 'list_skills', 'read_skill', 'ask_user'].includes(name) && !ctx.restricted.createdIds.has(id)) {
       throw new Error('Requests started from a link can only change the app they created.');
     }
   }
@@ -182,6 +205,7 @@ export async function runTool(
         color: String(args.color ?? ''),
         description: String(args.description ?? ''),
         html,
+        origin: ctx.restricted ? 'link' : 'chat',
       });
       ctx.restricted?.createdIds.add(app.id);
       await ctx.openApp(app.id);
@@ -246,9 +270,34 @@ export async function runTool(
     case 'delete_function':
       await cloud.call('DELETE', `/v1/functions/${String(args.name ?? '')}`);
       return JSON.stringify({ ok: true });
-    case 'set_secret':
-      await cloud.call('PUT', `/v1/secrets/${String(args.name ?? '')}`, { value: String(args.value ?? '') });
-      return JSON.stringify({ ok: true, name: args.name });
+    case 'request_secret': {
+      if (!ctx.requestSecret) throw new Error('Secure entry is not available here.');
+      const name = normalizeSecretName(String(args.name ?? ''));
+      if (!SECRET_NAME.test(name)) throw new Error('name must be UPPER_SNAKE_CASE');
+      const result = await ctx.requestSecret({
+        name,
+        label: String(args.label ?? name),
+        help: String(args.help ?? ''),
+        kind: (['api_key', 'password', 'token', 'text'].includes(String(args.kind)) ? args.kind : 'api_key') as SecretKind,
+        username: typeof args.username === 'string' && args.username ? args.username : undefined,
+        target: args.target === 'cloud' ? 'cloud' : 'device',
+      });
+      // Only the outcome goes back to the model, never the value.
+      return JSON.stringify(result.saved
+        ? { saved: true, name, use: args.target === 'cloud' ? `env.${name} in server functions` : `{{secret:${name}}} in mapp.http.fetch, or mapp.secrets.get('${name}')` }
+        : { saved: false, name, note: 'The user skipped. Continue without it or explain what it is needed for.' });
+    }
+    case 'ask_user': {
+      if (!ctx.askUser) throw new Error('Questions are not available here.');
+      const options = Array.isArray(args.options) ? args.options.map(String).filter(Boolean).slice(0, 6) : [];
+      const answer = await ctx.askUser({
+        question: String(args.question ?? ''),
+        options,
+        allowOther: args.allow_other !== false,
+        multiple: args.multiple === true,
+      });
+      return JSON.stringify(answer === null ? { skipped: true } : { answer });
+    }
     case 'join_space':
       return JSON.stringify(await cloud.joinSpace(String(args.code ?? ''), memberName()));
     case 'list_skills':
@@ -296,6 +345,8 @@ export function lintHtml(html: string): string[] | 'none' {
   }
   if (unknown.size) warnings.push(`Unknown capabilities (they will fail): ${[...unknown].map((n) => `mapp.${n}`).join(', ')}. Use only the listed capabilities.`);
   for (const [pattern, message] of FORBIDDEN) if (pattern.test(html)) warnings.push(message);
+  const hardcoded = looksLikeSecret(html);
+  if (hardcoded && hardcoded.suggestedName !== 'STRIPE_PUBLISHABLE_KEY') warnings.push('The code contains what looks like a real key or token. Remove it: use request_secret and {{secret:NAME}} instead.');
   if (!/m-nav|m-app|--safe-top/.test(html) && /position:\s*(fixed|sticky)/.test(html)) {
     warnings.push('Fixed/sticky elements must respect var(--safe-top)/var(--safe-bottom) or use the kit .m-nav/.m-tabbar.');
   }

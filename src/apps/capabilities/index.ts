@@ -25,6 +25,7 @@ import { recorder } from './recorder';
 import { scanner } from './scanner';
 import { screen } from './screen';
 import { shake } from './shake';
+import { secrets } from './secrets';
 import { share } from './share';
 import { speech } from './speech';
 import { storage } from './storage';
@@ -39,6 +40,7 @@ export const CAPABILITY_GROUPS: CapabilityGroup[] = [
   storage,
   ai,
   http,
+  secrets,
   app,
   haptics,
   camera,
