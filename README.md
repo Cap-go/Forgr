@@ -23,7 +23,7 @@ bun run build && bunx cap sync
 
 ```bash
 # OTA (JS/CSS only)
-bun run build && bunx @capgo/cli bundle upload app.capgo.mapp --channel production
+bun run build && bunx @capgo/cli bundle upload app.capgo.mapp --channel production --delta --min-update-version 1.1.0
 
 # Native (TestFlight)
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
