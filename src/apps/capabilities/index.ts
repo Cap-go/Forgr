@@ -11,6 +11,7 @@ import { compass } from './compass';
 import { contacts } from './contacts';
 import { datePicker } from './datePicker';
 import { device } from './device';
+import { files } from './files';
 import { flashlight } from './flashlight';
 import { geocoder } from './geocoder';
 import { haptics } from './haptics';
@@ -47,6 +48,7 @@ export const CAPABILITY_GROUPS: CapabilityGroup[] = [
   location,
   notifications,
   share,
+  files,
   clipboard,
   device,
   screen,

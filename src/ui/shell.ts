@@ -16,6 +16,9 @@ import { STARTER_APPS } from '../apps/templates';
 import { APP_LINKS, PREF_KEYS } from '../config';
 import { lifecycle } from '../lifecycle';
 import { Activity } from './activity';
+import { renderMarkdown } from './markdown';
+import { exportFile } from '../files';
+import { Clipboard } from '@capacitor/clipboard';
 import { questionCard, secretCard, type SecretSpec } from './cards';
 import { deleteSecret, listSecrets, looksLikeSecret, normalizeSecretName, saveSecret } from '../secrets';
 import { takeRequestLog } from '../ai/responses';
@@ -612,8 +615,36 @@ export class Shell {
   }
 
   private bubbleFor(role: ChatMessage['role'], text: string): HTMLElement {
-    return h('div', { class: `msg ${role}` }, text);
+    const bubble = h('div', { class: `msg ${role}` });
+    this.setMessageText(bubble, role, text);
+    return bubble;
   }
+
+  /** User text stays plain; assistant replies render as safe Markdown. */
+  private setMessageText(bubble: HTMLElement, role: ChatMessage['role'], text: string): void {
+    bubble.dataset.raw = text;
+    if (role === 'user') {
+      bubble.textContent = text;
+      return;
+    }
+    bubble.classList.add('md');
+    bubble.replaceChildren(renderMarkdown(text, this.markdownActions));
+  }
+
+  private readonly markdownActions = {
+    openLink: (url: string) => {
+      if (url.startsWith('mapp:')) this.handleLink(url);
+      else if (Capacitor.isNativePlatform()) void InAppBrowser.open({ url });
+      else window.open(url, '_blank', 'noopener');
+    },
+    copy: (text: string) => {
+      void Clipboard.write({ string: text });
+      haptic();
+    },
+    saveFile: (filename: string, text: string) => {
+      void exportFile({ filename, text }).catch((e) => this.toast(e instanceof Error ? e.message : String(e)));
+    },
+  };
 
   private scrollMessages(): void {
     this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
@@ -783,8 +814,17 @@ export class Shell {
               activity.step('Writing the reply');
               this.messagesEl.insertBefore(reply, status);
             }
-            reply.textContent += delta;
-            this.scrollMessages();
+            // Re-render Markdown at most once per frame while streaming.
+            reply.dataset.raw = (reply.dataset.raw ?? '') + delta;
+            if (!reply.dataset.pending) {
+              reply.dataset.pending = '1';
+              const target = reply;
+              requestAnimationFrame(() => {
+                delete target.dataset.pending;
+                this.setMessageText(target, 'assistant', target.dataset.raw ?? '');
+                this.scrollMessages();
+              });
+            }
           },
           onToolStart: (name, args) => {
             activity.step(toolLabel(name, args));

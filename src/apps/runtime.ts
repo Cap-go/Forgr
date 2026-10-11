@@ -104,6 +104,45 @@ function runtime(manifest: Manifest): void {
     },
   });
 
+  // Web downloads (<a download>, blob: and data: links) do nothing in the
+  // iOS WebView: turn them into a real file export with the share sheet.
+  const isDownload = (a: HTMLAnchorElement) =>
+    a.hasAttribute('download') || a.href.startsWith('blob:') || a.href.startsWith('data:');
+  const exportLink = async (a: HTMLAnchorElement): Promise<void> => {
+    try {
+      const blob = await (await fetch(a.href)).blob();
+      const filename = a.getAttribute('download') || a.href.split('/').pop()?.split('?')[0] || 'export';
+      const textual = /^text\/|json|csv|xml|calendar|vcard/.test(blob.type) || /\.(csv|json|txt|md|ics|xml|tsv|vcf|html)$/i.test(filename);
+      const content = textual
+        ? await blob.text()
+        : await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(blob);
+        });
+      await call('files.save', { filename, content, options: { base64: !textual, mimeType: blob.type || undefined } });
+    } catch (error) {
+      log('error', ['Export failed:', error]);
+    }
+  };
+  document.addEventListener('click', (e) => {
+    const a = (e.target as Element | null)?.closest?.('a');
+    if (a instanceof HTMLAnchorElement && isDownload(a)) {
+      e.preventDefault();
+      void exportLink(a);
+    }
+  }, true);
+  const nativeClick = HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click = function click(this: HTMLAnchorElement) {
+    // Programmatic a.click() on a detached link never reaches the listener above.
+    if (!this.isConnected && isDownload(this)) {
+      void exportLink(this);
+      return;
+    }
+    nativeClick.call(this);
+  };
+
   // Three-finger pinch: fingers moving together opens the Mapp switcher.
   let startSpread = 0;
   const spread = (touches: TouchList): number => {

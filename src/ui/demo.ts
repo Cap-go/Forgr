@@ -48,6 +48,22 @@ export async function scriptedAgent(
   hooks: AgentHooks,
 ): Promise<string> {
   const ask = history[history.length - 1]?.content.toLowerCase() ?? '';
+  if (ask.includes('csv')) {
+    hooks.onPhase?.('connecting');
+    await wait(300);
+    hooks.onPhase?.('waiting');
+    hooks.onToolStart('create_app', { name: 'Expenses' });
+    const app = await appStore.create({ name: 'Expenses', emoji: '💶', color: '#34c759', description: 'Expenses with CSV export.', html:
+      '<body class="m-app"><header class="m-nav"><h1 class="m-title">Expenses</h1></header><main class="m-page">' +
+      '<a id="dl" class="m-button" download="expenses.csv" href="data:text/csv,date%2Camount%0A2026-10-01%2C12.5%0A2026-10-02%2C8">Export CSV</a>' +
+      '<button id="blob" class="m-button secondary">Export JSON (blob)</button></main>' +
+      '<script>document.getElementById("blob").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({ok:1})],{type:"application/json"}));a.download="data.json";a.click();}</script></body>' });
+    await ctx.openApp(app.id);
+    hooks.onToolEnd('create_app', true, '');
+    const answer = 'Here is your data:\n\n| Date | Amount |\n|---|---|\n| Oct 1 | **12.50** |\n| Oct 2 | 8.00 |\n\n- Tap **Export CSV** in the app\n- Or save this:\n\n```csv\ndate,amount\n2026-10-01,12.5\n2026-10-02,8\n```\n\nMore at [capgo.app](https://capgo.app).';
+    await stream(hooks, answer);
+    return answer;
+  }
   if (ask.includes('stripe')) {
     hooks.onPhase?.('connecting');
     await wait(400);

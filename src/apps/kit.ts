@@ -50,7 +50,7 @@ button.m-row:active,a.m-row:active{background:var(--m-surface-2)}
 .m-row-end{margin-left:auto;color:var(--m-secondary);display:flex;align-items:center;gap:var(--m-2);flex:none}
 .m-row.chevron::after{content:"";flex:none;width:8px;height:8px;margin-left:var(--m-1);border:solid var(--m-tertiary);border-width:2px 2px 0 0;transform:rotate(45deg)}
 .m-card{background:var(--m-surface);border-radius:var(--m-radius);padding:var(--m-4);margin:0 0 var(--m-4)}
-.m-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--m-2);min-height:50px;padding:0 var(--m-5);
+.m-button{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:var(--m-2);min-height:50px;padding:0 var(--m-5);
 border-radius:var(--m-radius);background:var(--m-accent);color:var(--m-on-accent);font-size:17px;font-weight:600;transition:opacity .15s}
 .m-button.wide{display:flex;width:100%}
 .m-button.secondary{background:var(--m-tint);color:var(--m-accent-text)}
