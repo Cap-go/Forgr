@@ -643,8 +643,46 @@ export class Shell {
               h('span', { class: 'row-title' }, idea), icon('chevron', 'icon row-icon'))))));
       return;
     }
-    for (const m of this.conversation.messages) this.messagesEl.append(this.bubbleFor(m.role, m.content));
+    for (const m of this.conversation.messages) {
+      this.messagesEl.append(m.card ? this.appCard(m.card) : this.bubbleFor(m.role, m.content));
+    }
     this.scrollMessages();
+  }
+
+  /** Card for an app the builder created or updated: Open it, or Undo the update. */
+  private appCard(card: NonNullable<ChatMessage['card']>): HTMLElement {
+    const app = appStore.get(card.appId);
+    if (!app) {
+      return h('div', { class: 'app-card gone' }, h('span', { class: 'app-card-sub' }, 'This app was deleted.'));
+    }
+    const sub = card.kind === 'created' ? `New app · version ${card.version}` : `Updated · version ${card.version}`;
+    const open = h('button', { class: 'app-card-open' }, 'Open');
+    open.addEventListener('click', async () => {
+      haptic();
+      if (this.currentAppId !== app.id) await this.openApp(app.id);
+      this.editing = true;
+      this.collapseSheet();
+    });
+    const actions: HTMLElement[] = [open];
+    if (card.kind === 'updated' && card.version === app.version && card.version > 1) {
+      const undo = h('button', { class: 'app-card-undo' }, 'Undo');
+      undo.addEventListener('click', async () => {
+        if (this.running) return;
+        if (await appStore.undo(app.id)) {
+          haptic();
+          if (this.currentAppId === app.id) await this.reloadCurrent();
+          undo.remove();
+          this.toast(`Reverted ${app.name}`);
+        }
+      });
+      actions.unshift(undo);
+    }
+    return h('div', { class: 'app-card' },
+      h('span', { class: 'tile app-card-icon', style: `--tile:${app.color}` }, app.emoji),
+      h('div', { class: 'app-card-text' },
+        h('strong', {}, app.name),
+        h('span', { class: 'app-card-sub' }, sub)),
+      h('div', { class: 'app-card-actions' }, ...actions));
   }
 
   private bubbleFor(role: ChatMessage['role'], text: string): HTMLElement {
@@ -786,6 +824,8 @@ export class Shell {
     let errorText: string | undefined;
     let answerChars = 0;
     let toolsRan = 0;
+    let lastToolArgs: Record<string, unknown> = {};
+    const changedApps = new Map<string, 'created' | 'updated'>();
     // Answers and errors go right after the timeline, like ChatGPT's thought block.
     const status = h('div', { class: 'status-anchor' });
     let ok = false;
@@ -860,6 +900,7 @@ export class Shell {
             }
           },
           onToolStart: (name, args) => {
+            lastToolArgs = args;
             activity.step(toolLabel(name, args));
             if (reply.isConnected) {
               // Text before a tool call is its own message; later text gets a fresh bubble.
@@ -897,7 +938,15 @@ export class Shell {
             reply = h('div', { class: 'msg assistant streaming' });
             activity.step('Connection dropped, retrying');
           },
-          onToolEnd: () => { toolsRan++; },
+          onToolEnd: (name, ok, detail) => {
+            toolsRan++;
+            if (!ok || !['create_app', 'write_app', 'edit_app', 'update_app_info'].includes(name)) return;
+            let id = String(lastToolArgs.id ?? '');
+            if (name === 'create_app') id = /"id":"([^"]+)"/.exec(detail)?.[1] ?? id;
+            if (!id) return;
+            const kind = name === 'create_app' || changedApps.get(id) === 'created' ? 'created' : 'updated';
+            changedApps.set(id, kind);
+          },
         },
         controller.signal,
         saved?.input.length ? { input: saved.input, answer: saved.answer } : undefined,
@@ -918,6 +967,14 @@ export class Shell {
       conversation.messages.push({ role: 'assistant', content: answer || 'Done.' });
       if (!this.messagesEl.querySelector('.msg.assistant') && answer) {
         this.messagesEl.insertBefore(this.bubbleFor('assistant', answer), status);
+      }
+      // One card per app the run created or changed, to open it (or undo).
+      for (const [appId, kind] of changedApps) {
+        const app = appStore.get(appId);
+        if (!app) continue;
+        const card = { appId, version: app.version, kind };
+        conversation.messages.push({ role: 'assistant', content: `${kind === 'created' ? 'Created' : 'Updated'} app "${app.name}" (version ${app.version}).`, card });
+        this.messagesEl.insertBefore(this.appCard(card), status);
       }
       haptic(ImpactStyle.Medium);
     } catch (error) {

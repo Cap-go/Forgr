@@ -91,7 +91,7 @@ export async function scriptedAgent(
     await wait(900);
     const app = await appStore.create({ name: 'Workouts', emoji: '🏋️', color: '#0ea5e9', description: 'Log sets and see the week.', html: workoutHtml(false) });
     await ctx.openApp(app.id);
-    hooks.onToolEnd('create_app', true, '');
+    hooks.onToolEnd('create_app', true, JSON.stringify({ ok: true, id: app.id }));
     const answer = 'Your Workouts app is ready: tap + to log a set and watch the week fill up.';
     await stream(hooks, answer);
     return answer;
@@ -105,6 +105,7 @@ export async function scriptedAgent(
     await wait(1800);
     await appStore.writeHtml(id, workoutHtml(true));
     await ctx.openApp(id);
+    hooks.onToolEnd('edit_app', true, JSON.stringify({ ok: true }));
     const answer = 'Done! Dark neon theme and a streak badge. Undo is one tap away.';
     await stream(hooks, answer);
     return answer;

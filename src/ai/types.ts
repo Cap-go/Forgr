@@ -1,6 +1,8 @@
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  /** Shown as an app card in the chat; content keeps a text summary for the model. */
+  card?: { appId: string; version: number; kind: 'created' | 'updated' };
 }
 
 export type ToolOutput = string | Array<

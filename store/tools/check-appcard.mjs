@@ -1,0 +1,26 @@
+// Creates then updates an app in demo mode and screenshots the result cards.
+import { chromium } from 'playwright';
+const base = process.env.BASE ?? 'http://localhost:5181';
+const b = await chromium.launch();
+const p = await (await b.newContext({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, colorScheme: 'dark' })).newPage();
+p.on('pageerror', (e) => console.log('PAGEERROR', e.message));
+await p.goto(`${base}/`);
+await p.evaluate(async () => { localStorage.clear(); for (const d of await indexedDB.databases()) indexedDB.deleteDatabase(d.name); });
+await p.goto(`${base}/?demo=1`);
+await p.waitForSelector('.grid .app-icon');
+await p.locator('.composer-pill').click();
+await p.locator('.composer textarea').fill('A workout log with a weekly chart');
+await p.locator('.send').click();
+await p.locator('.activity.finished').first().waitFor({ timeout: 20000 }); await p.waitForTimeout(500);
+await p.screenshot({ path: '/tmp/mapp-card1.png' });
+await p.locator('.composer textarea').fill('Make it dark with neon green');
+await p.locator('.send').click();
+await p.locator('.activity.finished').nth(1).waitFor({ timeout: 20000 }); await p.waitForTimeout(500);
+await p.screenshot({ path: '/tmp/mapp-card2.png' });
+console.log('cards:', await p.locator('.app-card').count(), 'undo buttons:', await p.locator('.app-card-undo').count());
+await p.locator('.app-card-open').first().click(); await p.waitForTimeout(600);
+console.log('sheet hidden after Open:', !(await p.locator('.chat-sheet').isVisible()));
+await p.evaluate(() => window.__shell.openSwitcher()); await p.waitForTimeout(300);
+await p.locator('.switch-btn.accent').click(); await p.waitForTimeout(700);
+console.log('cards after reopening chat:', await p.locator('.app-card').count());
+await b.close();
