@@ -1,4 +1,4 @@
-import { completeSignIn, refreshAccessToken } from '../auth/oauth';
+import { completeSignIn, parseJwtPayload, refreshAccessToken } from '../auth/oauth';
 import { loadLatestCredentials, signOut as clearStoredCredentials } from '../auth/token-store';
 import type { OAuthCredentialRecord } from '../auth/types';
 
@@ -57,6 +57,14 @@ class Session {
       await this.refresh();
       return fn(this.creds.accessToken);
     }
+  }
+
+  /** A ChatGPT id_token valid for at least a minute, refreshing if needed. */
+  async freshIdToken(): Promise<string> {
+    if (!this.creds) throw new Error('Sign in with ChatGPT first.');
+    const exp = Number(parseJwtPayload(this.creds.idToken).exp ?? 0);
+    if (exp * 1000 < Date.now() + 60_000) await this.refresh();
+    return this.creds.idToken;
   }
 
   private async refresh(): Promise<void> {

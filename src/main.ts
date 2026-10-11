@@ -10,7 +10,8 @@ if (demo) {
   localStorage.setItem('mapp_onboarded_v1', '1');
   // Fake iPhone safe areas and status bar so recordings look like the device.
   const style = document.createElement('style');
-  style.textContent = '.safe-probe{padding:54px 0 34px 0!important}:root{--safe-top:54px!important;--safe-bottom:34px!important}' +
+  style.textContent = '.safe-probe{padding:54px 0 34px 0!important}:root{--safe-top:54px!important;--safe-bottom:34px!important;' +
+    '--demo-safe-top:54px;--demo-safe-bottom:34px;--demo-safe-left:0px;--demo-safe-right:0px}' +
     '.demo-status{position:fixed;top:0;left:0;right:0;height:54px;z-index:99;pointer-events:none;display:flex;align-items:center;' +
     'justify-content:space-between;padding:4px 34px 0 46px;font:600 17px -apple-system,system-ui;color:var(--status,#fff);mix-blend-mode:difference}';
   document.head.append(style);

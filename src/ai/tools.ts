@@ -1,5 +1,7 @@
 import { appStore } from '../apps/store';
 import { getLogs } from '../apps/bridge';
+import { capabilityNames } from '../apps/capabilities';
+import { cloud, memberName } from '../cloud/client';
 import { listSkills, readSkill } from '../skills';
 
 const obj = (properties: Record<string, unknown>, required: string[] = []) => ({
@@ -80,6 +82,41 @@ const TOOLS = [
   },
   {
     type: 'function',
+    name: 'list_cloud',
+    description: "List the user's Mapp Cloud functions (with public URLs), secret names and shared spaces (with descriptions of their data).",
+    parameters: obj({}),
+  },
+  {
+    type: 'function',
+    name: 'deploy_function',
+    description: 'Create or replace a server function (sandboxed Cloudflare Worker ES module). Returns its URL.',
+    parameters: obj({
+      name: str('lowercase-with-dashes, max 40'),
+      code: str('ES module: export default { async fetch(request, env) { ... } }'),
+      description: str('What it does'),
+      public: { type: 'boolean', description: 'true = anyone with the URL can call it (webhooks, sharing); false = only the user' },
+    }, ['name', 'code', 'description', 'public']),
+  },
+  {
+    type: 'function',
+    name: 'delete_function',
+    description: 'Delete a server function.',
+    parameters: obj({ name: str('Function name') }, ['name']),
+  },
+  {
+    type: 'function',
+    name: 'set_secret',
+    description: 'Store a secret (API key) the user gave you, available to their functions as env.NAME. Never put secrets in app HTML.',
+    parameters: obj({ name: str('UPPER_SNAKE_CASE'), value: str('Secret value') }, ['name', 'value']),
+  },
+  {
+    type: 'function',
+    name: 'join_space',
+    description: 'Join a shared space with an invite code the user received. Returns its description so you can build an app on it.',
+    parameters: obj({ code: str('Invite code like ABCD-EFGH-JKLM-NPQR') }, ['code']),
+  },
+  {
+    type: 'function',
     name: 'list_skills',
     description: 'List Capgo skills: expert guides on mobile UI, safe areas, keyboard, accessibility, performance, offline, Capacitor plugins.',
     parameters: obj({}),
@@ -128,12 +165,13 @@ export async function runTool(
         html,
       });
       await ctx.openApp(app.id);
-      return JSON.stringify({ ok: true, id: app.id, opened: true, logs: await settleLogs(app.id, ctx) });
+      return JSON.stringify({ ok: true, id: app.id, opened: true, logs: await settleLogs(app.id, ctx), warnings: lintHtml(html) });
     }
     case 'write_app': {
-      await appStore.writeHtml(id, requireHtml(args.html));
+      const html = requireHtml(args.html);
+      await appStore.writeHtml(id, html);
       await ctx.openApp(id);
-      return JSON.stringify({ ok: true, logs: await settleLogs(id, ctx) });
+      return JSON.stringify({ ok: true, logs: await settleLogs(id, ctx), warnings: lintHtml(html) });
     }
     case 'edit_app': {
       let html = await appStore.readHtml(id);
@@ -149,7 +187,7 @@ export async function runTool(
       }
       await appStore.writeHtml(id, html);
       await ctx.openApp(id);
-      return JSON.stringify({ ok: true, applied: edits.length, logs: await settleLogs(id, ctx) });
+      return JSON.stringify({ ok: true, applied: edits.length, logs: await settleLogs(id, ctx), warnings: lintHtml(html) });
     }
     case 'update_app_info': {
       const app = await appStore.updateInfo(id, {
@@ -167,6 +205,32 @@ export async function runTool(
     case 'get_app_logs':
       appStore.require(id);
       return JSON.stringify(getLogs(id).slice(-30));
+    case 'list_cloud': {
+      const [fns, spaces] = await Promise.all([
+        cloud.call<{ functions: unknown[]; secrets: string[]; baseUrl: string }>('GET', '/v1/functions'),
+        cloud.listSpaces(),
+      ]);
+      const detailed = await Promise.all(spaces.map((sp) => cloud.spaceInfo(sp.spaceId)
+        .then((info) => ({ ...sp, description: info.description, members: info.members.map((m) => m.name) }))
+        .catch(() => sp)));
+      return JSON.stringify({ ...fns, spaces: detailed });
+    }
+    case 'deploy_function': {
+      const result = await cloud.call('PUT', `/v1/functions/${String(args.name ?? '')}`, {
+        code: String(args.code ?? ''),
+        description: String(args.description ?? ''),
+        public: args.public !== false,
+      });
+      return JSON.stringify({ ok: true, ...(result as object) });
+    }
+    case 'delete_function':
+      await cloud.call('DELETE', `/v1/functions/${String(args.name ?? '')}`);
+      return JSON.stringify({ ok: true });
+    case 'set_secret':
+      await cloud.call('PUT', `/v1/secrets/${String(args.name ?? '')}`, { value: String(args.value ?? '') });
+      return JSON.stringify({ ok: true, name: args.name });
+    case 'join_space':
+      return JSON.stringify(await cloud.joinSpace(String(args.code ?? ''), memberName()));
     case 'list_skills':
       return JSON.stringify(listSkills());
     case 'read_skill':
@@ -187,4 +251,33 @@ async function settleLogs(id: string, ctx: ToolContext): Promise<unknown> {
   await ctx.settle();
   const errors = getLogs(id).filter((l) => l.level === 'error');
   return errors.length ? errors.slice(-10) : 'no errors';
+}
+
+const FORBIDDEN: Array<[RegExp, string]> = [
+  [/\blocalStorage\b|\bsessionStorage\b|\bindexedDB\b|document\.cookie/, 'Browser storage is blocked in the sandbox: use mapp.storage.'],
+  [/navigator\.geolocation/, 'navigator.geolocation does not work: use mapp.location.'],
+  [/getUserMedia|<input[^>]+capture=/, 'Camera/microphone web APIs do not work: use the mapp camera/audio capabilities.'],
+  [/navigator\.vibrate/, 'navigator.vibrate does nothing on iPhone: use mapp.haptics.'],
+  [/\bnew Notification\(|Notification\.requestPermission/, 'Notification API does not work: use mapp.notifications.'],
+  [/\bwindow\.open\(/, 'window.open is blocked: use mapp.app.openUrl.'],
+  [/\b(alert|confirm|prompt)\(/, 'Avoid alert/confirm/prompt: use the kit sheet or inline UI.'],
+  [/100vh/, 'Use 100dvh instead of 100vh so the keyboard does not cover content.'],
+  [/SpeechRecognition|speechSynthesis/, 'Web Speech API does not work: use the mapp speech capabilities.'],
+];
+
+/** Static checks so the model notices unsupported APIs before telling the user it works. */
+export function lintHtml(html: string): string[] | 'none' {
+  const known = new Set(capabilityNames());
+  const warnings: string[] = [];
+  const unknown = new Set<string>();
+  for (const match of html.matchAll(/\bmapp\.([a-zA-Z]+)\.([a-zA-Z]+)\s*\(/g)) {
+    const name = `${match[1]}.${match[2]}`;
+    if (!known.has(name)) unknown.add(name);
+  }
+  if (unknown.size) warnings.push(`Unknown capabilities (they will fail): ${[...unknown].map((n) => `mapp.${n}`).join(', ')}. Use only the listed capabilities.`);
+  for (const [pattern, message] of FORBIDDEN) if (pattern.test(html)) warnings.push(message);
+  if (!/m-nav|m-app|--safe-top/.test(html) && /position:\s*(fixed|sticky)/.test(html)) {
+    warnings.push('Fixed/sticky elements must respect var(--safe-top)/var(--safe-bottom) or use the kit .m-nav/.m-tabbar.');
+  }
+  return warnings.length ? warnings : 'none';
 }

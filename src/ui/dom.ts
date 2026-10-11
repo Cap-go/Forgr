@@ -38,7 +38,7 @@ export function svg(markup: string): SVGElement {
   return tpl.content.firstElementChild as SVGElement;
 }
 
-const stroke = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+const stroke = 'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
 
 export const icons = {
   logo: `<svg viewBox="0 0 1024 1024" aria-hidden="true"><defs><linearGradient id="mlg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset=".55" stop-color="#4b2bd6"/><stop offset="1" stop-color="#1b1145"/></linearGradient><linearGradient id="msp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe07a"/><stop offset="1" stop-color="#ff7a59"/></linearGradient></defs><rect width="1024" height="1024" rx="230" fill="url(#mlg)"/><rect x="232" y="232" width="252" height="252" rx="64" fill="#fff"/><rect x="232" y="540" width="252" height="252" rx="64" fill="#fff" opacity=".55"/><rect x="540" y="540" width="252" height="252" rx="64" fill="#fff" opacity=".8"/><path fill="url(#msp)" d="M666 222C684 318 702 336 798 358C702 380 684 398 666 494C648 398 630 380 534 358C630 336 648 318 666 222Z"/></svg>`,
@@ -60,6 +60,10 @@ export const icons = {
   undo: `<svg viewBox="0 0 24 24" ${stroke}><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>`,
   stop: `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`,
   plus: `<svg viewBox="0 0 24 24" ${stroke}><path d="M12 5v14M5 12h14"/></svg>`,
+  back: `<svg viewBox="0 0 24 24" ${stroke}><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>`,
+  chevronDown: `<svg viewBox="0 0 24 24" ${stroke}><path d="m6 9 6 6 6-6"/></svg>`,
+  person: `<svg viewBox="0 0 24 24" ${stroke}><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`,
+  lock: `<svg viewBox="0 0 24 24" ${stroke}><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`,
 } as const;
 
 export function icon(name: keyof typeof icons, className = 'icon'): SVGElement {

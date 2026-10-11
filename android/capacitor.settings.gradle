@@ -11,6 +11,9 @@ project(':capacitor-camera').projectDir = new File('../node_modules/@capacitor/c
 include ':capacitor-clipboard'
 project(':capacitor-clipboard').projectDir = new File('../node_modules/@capacitor/clipboard/android')
 
+include ':capacitor-device'
+project(':capacitor-device').projectDir = new File('../node_modules/@capacitor/device/android')
+
 include ':capacitor-filesystem'
 project(':capacitor-filesystem').projectDir = new File('../node_modules/@capacitor/filesystem/android')
 
@@ -32,11 +35,77 @@ project(':capacitor-share').projectDir = new File('../node_modules/@capacitor/sh
 include ':capacitor-status-bar'
 project(':capacitor-status-bar').projectDir = new File('../node_modules/@capacitor/status-bar/android')
 
+include ':capgo-capacitor-accelerometer'
+project(':capgo-capacitor-accelerometer').projectDir = new File('../node_modules/@capgo/capacitor-accelerometer/android')
+
+include ':capgo-capacitor-audio-recorder'
+project(':capgo-capacitor-audio-recorder').projectDir = new File('../node_modules/@capgo/capacitor-audio-recorder/android')
+
+include ':capgo-capacitor-barometer'
+project(':capgo-capacitor-barometer').projectDir = new File('../node_modules/@capgo/capacitor-barometer/android')
+
+include ':capgo-capacitor-brightness'
+project(':capgo-capacitor-brightness').projectDir = new File('../node_modules/@capgo/capacitor-brightness/android')
+
+include ':capgo-capacitor-calendar'
+project(':capgo-capacitor-calendar').projectDir = new File('../node_modules/@capgo/capacitor-calendar/android')
+
+include ':capgo-capacitor-compass'
+project(':capgo-capacitor-compass').projectDir = new File('../node_modules/@capgo/capacitor-compass/android')
+
+include ':capgo-capacitor-contacts'
+project(':capgo-capacitor-contacts').projectDir = new File('../node_modules/@capgo/capacitor-contacts/android')
+
+include ':capgo-capacitor-date-picker'
+project(':capgo-capacitor-date-picker').projectDir = new File('../node_modules/@capgo/capacitor-date-picker/android')
+
+include ':capgo-capacitor-device-info'
+project(':capgo-capacitor-device-info').projectDir = new File('../node_modules/@capgo/capacitor-device-info/android')
+
+include ':capgo-capacitor-document-scanner'
+project(':capgo-capacitor-document-scanner').projectDir = new File('../node_modules/@capgo/capacitor-document-scanner/android')
+
+include ':capgo-capacitor-flash'
+project(':capgo-capacitor-flash').projectDir = new File('../node_modules/@capgo/capacitor-flash/android')
+
 include ':capgo-capacitor-inappbrowser'
 project(':capgo-capacitor-inappbrowser').projectDir = new File('../node_modules/@capgo/capacitor-inappbrowser/android')
 
+include ':capgo-capacitor-keep-awake'
+project(':capgo-capacitor-keep-awake').projectDir = new File('../node_modules/@capgo/capacitor-keep-awake/android')
+
+include ':capgo-capacitor-launch-navigator'
+project(':capgo-capacitor-launch-navigator').projectDir = new File('../node_modules/@capgo/capacitor-launch-navigator/android')
+
+include ':capgo-capacitor-native-biometric'
+project(':capgo-capacitor-native-biometric').projectDir = new File('../node_modules/@capgo/capacitor-native-biometric/android')
+
+include ':capgo-capacitor-nativegeocoder'
+project(':capgo-capacitor-nativegeocoder').projectDir = new File('../node_modules/@capgo/capacitor-nativegeocoder/android')
+
+include ':capgo-capacitor-pdf-generator'
+project(':capgo-capacitor-pdf-generator').projectDir = new File('../node_modules/@capgo/capacitor-pdf-generator/android')
+
+include ':capgo-capacitor-pedometer'
+project(':capgo-capacitor-pedometer').projectDir = new File('../node_modules/@capgo/capacitor-pedometer/android')
+
+include ':capgo-capacitor-printer'
+project(':capgo-capacitor-printer').projectDir = new File('../node_modules/@capgo/capacitor-printer/android')
+
+include ':capgo-capacitor-shake'
+project(':capgo-capacitor-shake').projectDir = new File('../node_modules/@capgo/capacitor-shake/android')
+
+include ':capgo-capacitor-speech-recognition'
+project(':capgo-capacitor-speech-recognition').projectDir = new File('../node_modules/@capgo/capacitor-speech-recognition/android')
+
+include ':capgo-capacitor-speech-synthesis'
+project(':capgo-capacitor-speech-synthesis').projectDir = new File('../node_modules/@capgo/capacitor-speech-synthesis/android')
+
 include ':capgo-capacitor-updater'
 project(':capgo-capacitor-updater').projectDir = new File('../node_modules/@capgo/capacitor-updater/android')
+
+include ':capgo-capacitor-volume-buttons'
+project(':capgo-capacitor-volume-buttons').projectDir = new File('../node_modules/@capgo/capacitor-volume-buttons/android')
 
 include ':capgo-oauth-loopback'
 project(':capgo-oauth-loopback').projectDir = new File('../node_modules/@capgo/oauth-loopback/android')

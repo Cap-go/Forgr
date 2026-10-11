@@ -1,0 +1,24 @@
+{
+  "name": "mapp-cloud",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "enable_ctx_exports"],
+  "worker_loaders": [{ "binding": "LOADER" }],
+  "observability": { "enabled": true },
+  "durable_objects": {
+    "bindings": [
+      { "name": "USER", "class_name": "UserSpace" },
+      { "name": "SPACE", "class_name": "SharedSpace" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["UserSpace", "SharedSpace"] }
+  ],
+  "vars": {
+    "OPENAI_ISSUER": "https://auth.openai.com",
+    "OPENAI_JWKS_URL": "https://auth.openai.com/.well-known/jwks.json",
+    "PUBLIC_URL": "https://mapp-cloud.digitalshift-ee.workers.dev",
+    "BETA_URL": "https://mapp-site.digitalshift-ee.workers.dev"
+  }
+  // Secret: SESSION_SECRET (wrangler secret put SESSION_SECRET)
+}

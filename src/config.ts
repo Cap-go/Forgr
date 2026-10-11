@@ -3,7 +3,7 @@ export const AGENT_NAME_HINT = 'Mapp';
 
 export const OAUTH_AUTHORIZE_URL = 'https://auth.openai.com/api/accounts/authorize';
 export const OAUTH_TOKEN_URL = 'https://auth.openai.com/api/accounts/oauth/token';
-export const OAUTH_JWKS_URL = 'https://auth.openai.com/api/accounts/oauth/jwks';
+export const OAUTH_JWKS_URL = 'https://auth.openai.com/.well-known/jwks.json';
 export const OAUTH_ISSUER = 'https://auth.openai.com';
 
 export const OAUTH_DYNAMIC_CLIENT_ID = 'dynamic_agent_client';

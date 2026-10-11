@@ -1,3 +1,5 @@
+import { CAPABILITY_GROUPS } from './capabilities';
+import { KIT_CSS } from './kit';
 import type { MiniAppMeta } from './store';
 
 export interface SafeArea {
@@ -7,16 +9,20 @@ export interface SafeArea {
   left: number;
 }
 
+/** Positional parameter names per capability, as the runtime needs them. */
+type Manifest = Array<[name: string, params: string[] | null]>;
+
 /**
- * Runs inside every mini app (sandboxed iframe, opaque origin). Exposes
- * window.mapp, forwards errors to the host and detects the 3-finger pinch.
+ * Runs inside every mini app (sandboxed iframe, opaque origin). Builds
+ * window.mapp from the capability manifest, forwards logs and errors to the
+ * host, applies live safe-area insets and detects the 3-finger pinch.
  */
-function runtime(): void {
+function runtime(manifest: Manifest): void {
   const host = window.parent;
   const pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
   let seq = 0;
 
-  const call = (method: string, args?: unknown): Promise<unknown> =>
+  const call = (method: string, args: unknown): Promise<unknown> =>
     new Promise((resolve, reject) => {
       const id = ++seq;
       pending.set(id, { resolve, reject });
@@ -24,10 +30,14 @@ function runtime(): void {
     });
 
   const listeners = new Map<string, Set<(data: unknown) => void>>();
+  const root = document.documentElement;
 
   window.addEventListener('message', (event) => {
     if (event.source !== host) return;
-    const data = event.data as { __mapp?: string; id?: number; result?: unknown; error?: string; name?: string; payload?: unknown };
+    const data = event.data as {
+      __mapp?: string; id?: number; result?: unknown; error?: string; name?: string; payload?: unknown;
+      insets?: Record<string, number>;
+    };
     if (data?.__mapp === 'reply' && typeof data.id === 'number') {
       const p = pending.get(data.id);
       if (!p) return;
@@ -36,7 +46,14 @@ function runtime(): void {
       else p.resolve(data.result);
     }
     if (data?.__mapp === 'event' && data.name) {
-      listeners.get(data.name)?.forEach((fn) => fn(data.payload));
+      listeners.get(data.name)?.forEach((fn) => {
+        try { fn(data.payload); } catch (e) { console.error(e); }
+      });
+    }
+    if (data?.__mapp === 'safe-area' && data.insets) {
+      for (const side of ['top', 'right', 'bottom', 'left']) {
+        root.style.setProperty(`--safe-${side}`, `${data.insets[side] ?? 0}px`);
+      }
     }
   });
 
@@ -58,54 +75,34 @@ function runtime(): void {
   window.addEventListener('error', (e) => log('error', [`${e.message} (line ${e.lineno}:${e.colno})`]));
   window.addEventListener('unhandledrejection', (e) => log('error', ['Unhandled promise rejection:', e.reason]));
 
-  (window as unknown as { mapp: unknown }).mapp = {
-    storage: {
-      get: (key: string) => call('storage.get', { key }),
-      set: (key: string, value: unknown) => call('storage.set', { key, value }),
-      remove: (key: string) => call('storage.remove', { key }),
-      keys: () => call('storage.keys'),
-    },
-    haptics: {
-      impact: (style = 'light') => call('haptics.impact', { style }),
-      notification: (type = 'success') => call('haptics.notification', { type }),
-      selection: () => call('haptics.selection'),
-    },
-    camera: {
-      takePhoto: (options?: { source?: 'camera' | 'photos'; quality?: number }) => call('camera.photo', options ?? {}),
-    },
-    location: {
-      current: () => call('location.current'),
-    },
-    notifications: {
-      schedule: (options: { id?: number; title: string; body?: string; at?: string | number; every?: string }) =>
-        call('notifications.schedule', options),
-      cancel: (id: number) => call('notifications.cancel', { id }),
-    },
-    share: (options: { title?: string; text?: string; url?: string }) => call('share', options),
-    clipboard: {
-      write: (text: string) => call('clipboard.write', { text }),
-      read: () => call('clipboard.read'),
-    },
-    http: {
-      fetch: (url: string, options?: { method?: string; headers?: Record<string, string>; body?: unknown }) =>
-        call('http.fetch', { url, ...options }),
-    },
-    ai: {
-      chat: (prompt: string | Array<{ role: string; content: string }>, options?: { system?: string }) =>
-        call('ai.chat', { prompt, ...options }),
-    },
-    app: {
-      info: () => call('app.info'),
-      home: () => call('app.home'),
-      edit: (prompt?: string) => call('app.edit', { prompt }),
-      openUrl: (url: string) => call('app.openUrl', { url }),
-    },
+  const mapp: Record<string, unknown> = {
     on: (name: string, fn: (data: unknown) => void) => {
       if (!listeners.has(name)) listeners.set(name, new Set());
       listeners.get(name)?.add(fn);
       return () => listeners.get(name)?.delete(fn);
     },
+    capabilities: manifest.map(([name]) => name),
   };
+  for (const [name, params] of manifest) {
+    const [group, method] = name.split('.');
+    const target = (mapp[group] ??= {}) as Record<string, unknown>;
+    target[method] = (...values: unknown[]) => {
+      if (!params) return call(name, values[0] ?? {});
+      const args: Record<string, unknown> = {};
+      params.forEach((param, i) => { if (values[i] !== undefined) args[param] = values[i]; });
+      return call(name, args);
+    };
+  }
+  // Calling something that does not exist fails loudly so the builder AI notices.
+  (window as unknown as { mapp: unknown }).mapp = new Proxy(mapp, {
+    get(target, prop) {
+      if (typeof prop === 'symbol' || prop in target || prop === 'then' || prop === 'toJSON') {
+        return (target as Record<string | symbol, unknown>)[prop];
+      }
+      log('error', [`mapp.${String(prop)} does not exist. Available: ${Object.keys(target).join(', ')}`]);
+      return undefined;
+    },
+  });
 
   // Three-finger pinch: fingers moving together opens the Mapp switcher.
   let startSpread = 0;
@@ -139,20 +136,82 @@ function runtime(): void {
   }, opts);
 }
 
-/** The runtime source, also used by the host shell for its own pinch detection. */
-export const RUNTIME_SOURCE = `(${runtime.toString()})();`;
+function manifest(): Manifest {
+  return CAPABILITY_GROUPS.flatMap((g) => g.capabilities.map((c): [string, string[] | null] => [c.name, c.params ?? null]));
+}
 
-export function buildSrcdoc(app: MiniAppMeta, html: string, safe: SafeArea, dark: boolean): string {
+/** The runtime source with the current capability manifest baked in. */
+export function runtimeSource(): string {
+  return `(${runtime.toString()})(${JSON.stringify(manifest())});`;
+}
+
+/**
+ * Reads the host WebView's safe-area insets right now. Measured on every use:
+ * at app launch WKWebView can still report zero insets.
+ */
+export function measureSafeArea(): SafeArea {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;' +
+    'padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+  document.body.append(probe);
+  const style = getComputedStyle(probe);
+  const safe = {
+    top: parseFloat(style.paddingTop) || 0,
+    right: parseFloat(style.paddingRight) || 0,
+    bottom: parseFloat(style.paddingBottom) || 0,
+    left: parseFloat(style.paddingLeft) || 0,
+  };
+  probe.remove();
+  // Dev demo and tests can force insets with --demo-safe-* on :root.
+  const root = getComputedStyle(document.documentElement);
+  for (const side of ['top', 'right', 'bottom', 'left'] as const) {
+    const forced = parseFloat(root.getPropertyValue(`--demo-safe-${side}`));
+    if (!Number.isNaN(forced)) safe[side] = forced;
+  }
+  return safe;
+}
+
+/**
+ * Keeps a mini app's --safe-* variables in sync with the device (rotation,
+ * late WebView layout). Returns a disposer.
+ */
+export function syncSafeArea(frame: HTMLIFrameElement): () => void {
+  let last = '';
+  const post = () => {
+    const insets = measureSafeArea();
+    const key = JSON.stringify(insets);
+    if (key === last) return;
+    last = key;
+    frame.contentWindow?.postMessage({ __mapp: 'safe-area', insets }, '*');
+  };
+  const onLoad = () => {
+    last = '';
+    post();
+  };
+  frame.addEventListener('load', onLoad);
+  window.addEventListener('resize', post);
+  const timer = window.setInterval(post, 1500);
+  return () => {
+    frame.removeEventListener('load', onLoad);
+    window.removeEventListener('resize', post);
+    window.clearInterval(timer);
+  };
+}
+
+export function buildSrcdoc(app: MiniAppMeta, html: string, _safe?: SafeArea, dark?: boolean): string {
+  const safe = measureSafeArea();
+  const scheme = dark ?? matchMedia('(prefers-color-scheme: dark)').matches;
   const body = html.replace(/^\s*<!doctype[^>]*>/i, '');
   const head = [
     '<!doctype html>',
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">',
     `<title>${escapeHtml(app.name)}</title>`,
-    `<style>:root{--safe-top:${safe.top}px;--safe-right:${safe.right}px;--safe-bottom:${safe.bottom}px;` +
-      `--safe-left:${safe.left}px;--app-accent:${escapeHtml(app.color)};color-scheme:${dark ? 'dark' : 'light'}}` +
-      'html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}</style>',
-    `<script>${RUNTIME_SOURCE}</script>`,
+    `<style id="mapp-env">:root{--safe-top:${safe.top}px;--safe-right:${safe.right}px;--safe-bottom:${safe.bottom}px;` +
+      `--safe-left:${safe.left}px;--app-accent:${escapeHtml(app.color)};color-scheme:light dark}` +
+      `html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;background:${scheme ? '#000' : '#f2f2f7'}}</style>`,
+    `<style id="mapp-kit">${KIT_CSS}</style>`,
+    `<script>${runtimeSource()}</script>`,
   ].join('\n');
   return `${head}\n${body}`;
 }

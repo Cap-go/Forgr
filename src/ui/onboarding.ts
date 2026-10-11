@@ -11,70 +11,68 @@ interface Slide {
   practice?: boolean;
 }
 
-const tile = (emoji: string, color: string, extra = '') =>
-  h('span', { class: `tile ${extra}`, style: `--tile:${color}` }, emoji);
+/** Neutral mock of a mini app: a title bar and a few list rows. */
+const mockApp = (title: string, rows: Array<{ text: string; on?: boolean; cls?: string }>, extra = '') =>
+  h('div', { class: `mock-app ${extra}` },
+    h('div', { class: 'mock-title' }, title),
+    h('div', { class: 'mock-list' },
+      ...rows.map((row) => h('div', { class: `mock-row ${row.cls ?? ''}` },
+        h('span', { class: `mock-check${row.on ? ' on' : ''}` }), h('span', {}, row.text)))));
+
+const mockTiles = (count: number) =>
+  h('div', { class: 'mock-tiles' }, ...Array.from({ length: count }, () => h('span', { class: 'mock-tile' })));
 
 const SLIDES: Slide[] = [
   {
-    art: () => h('div', { class: 'art art-welcome' },
-      icon('logo', 'welcome-logo'),
-      h('div', { class: 'orbit' },
-        tile('✅', '#22c55e'), tile('💸', '#f59e0b'), tile('⏳', '#8b5cf6'),
-        tile('🛒', '#0ea5e9'), tile('📓', '#ef4444'), tile('🌱', '#10b981'))),
+    art: () => h('div', { class: 'art art-welcome' }, icon('logo', 'welcome-logo')),
     title: 'Welcome to Mapp',
-    body: 'A phone full of apps made just for you. You describe them, AI builds them, and they live right here on your iPhone.',
+    body: 'Apps made just for you. Describe what you need and it is built right on your iPhone.',
   },
   {
     art: () => h('div', { class: 'art art-build' },
-      h('div', { class: 'msg user typed' }, 'A grocery list I can check off at the store'),
-      h('div', { class: 'status s1' }, h('span', { class: 'dots' }), 'Building Groceries…'),
-      h('div', { class: 'mini-app' },
-        h('div', { class: 'mini-head' }, '🛒 Groceries'),
-        ...['Milk', 'Avocados', 'Coffee beans'].map((item, i) =>
-          h('div', { class: `mini-row r${i}` }, h('span', { class: 'mini-check' }), item)))),
-    title: 'Describe it.\nWatch it appear.',
-    body: 'Tell Mapp what you need in plain words. In a few seconds you get a real app with its own icon on your home screen.',
+      h('div', { class: 'msg user' }, 'A grocery list I can check off at the store'),
+      h('div', { class: 'status' }, h('span', { class: 'dots' }), 'Building Groceries…'),
+      mockApp('Groceries', [{ text: 'Milk', cls: 'r0' }, { text: 'Avocados', cls: 'r1' }, { text: 'Coffee beans', cls: 'r2' }])),
+    title: 'Describe it',
+    body: 'Say what you need in plain words. A working app shows up on your home screen in seconds.',
   },
   {
     art: () => h('div', { class: 'art art-edit' },
-      h('div', { class: 'mini-app tall' },
-        h('div', { class: 'mini-head' }, '🛒 Groceries'),
-        h('div', { class: 'mini-row' }, h('span', { class: 'mini-check on' }), 'Milk'),
-        h('div', { class: 'mini-row aisle' }, h('span', { class: 'mini-tag' }, 'Dairy'), h('span', { class: 'mini-tag' }, 'Produce'))),
-      h('div', { class: 'msg user small' }, 'Group items by aisle'),
+      mockApp('Groceries', [{ text: 'Milk', on: true }, { text: 'Avocados' }, { text: 'Bread', cls: 'late' }]),
+      h('div', { class: 'msg user' }, 'Group items by aisle'),
       h('span', { class: 'fake-bubble' }, icon('sparkles'))),
-    title: 'Change anything,\nanytime',
-    body: 'Open the floating chat inside an app and ask for changes. Every change is saved, so Undo always takes you back.',
+    title: 'Change anything',
+    body: 'Tap the chat button inside an app to ask for changes. Undo takes you back at any time.',
   },
   {
     art: () => h('div', { class: 'art art-pinch practice-area' },
       h('div', { class: 'pinch-demo' }, h('span', { class: 'f f1' }), h('span', { class: 'f f2' }), h('span', { class: 'f f3' })),
       h('div', { class: 'practice-done' }, icon('check'))),
-    title: 'Pinch with\nthree fingers',
-    body: 'Inside any app, pinch three fingers together to open the switcher. Try it now on the screen.',
+    title: 'Pinch with three fingers',
+    body: 'Inside any app, pinch three fingers together to open the switcher. Try it here.',
     practice: true,
   },
   {
     art: () => h('div', { class: 'art art-switch' },
-      h('div', { class: 'switch-card' }, h('div', { class: 'mini-head' }, '✅ Habits'), h('div', { class: 'mini-row' }, h('span', { class: 'mini-check on' }), 'Drink water')),
+      h('div', { class: 'switch-card' }, mockApp('Habits', [{ text: 'Drink water', on: true }, { text: 'Walk' }])),
       h('div', { class: 'switch-row' },
         h('span', { class: 'pill' }, icon('home'), 'Home'),
         h('span', { class: 'pill accent' }, icon('pencil'), 'Edit'),
-        h('span', { class: 'pill' }, icon('chevron'), 'Back')),
-      h('div', { class: 'switch-apps' }, tile('💸', '#f59e0b', 'small'), tile('⏳', '#8b5cf6', 'small'), tile('🛒', '#0ea5e9', 'small'))),
-    title: 'Home, Edit,\nor another app',
-    body: 'The switcher takes you home, opens the AI editor, or jumps to your other apps. Spread three fingers to go back.',
+        h('span', { class: 'pill' }, icon('back'), 'Back')),
+      mockTiles(4)),
+    title: 'Home, Edit, or switch',
+    body: 'The switcher takes you home, opens the editor, or jumps to another app. Spread three fingers to go back.',
   },
   {
     art: () => h('div', { class: 'art art-private' },
-      h('div', { class: 'shield' }, icon('shield')),
+      h('div', { class: 'lock-badge' }, icon('lock')),
       h('ul', { class: 'facts' },
         h('li', {}, icon('check'), 'Apps and data stay on this iPhone'),
         h('li', {}, icon('check'), 'Runs on your own ChatGPT plan'),
         h('li', {}, icon('check'), 'Sign in kept in the iOS Keychain'),
         h('li', {}, icon('check'), 'No ads, no tracking'))),
-    title: 'Yours, and private',
-    body: 'There is no Mapp account. Connect ChatGPT once and start building. You can also try the starter apps first.',
+    title: 'Private by design',
+    body: 'There is no Mapp account. Connect ChatGPT to start building, or try the starter apps first.',
   },
 ];
 
@@ -109,34 +107,34 @@ export function showOnboarding(root: HTMLElement): Promise<boolean> {
       if (!slide?.practice || direction !== 'in') return;
       haptic('success');
       layer.querySelector('.practice-area')?.classList.add('done');
-      layer.querySelector('.practice-hint')?.replaceChildren('Nice! That is all it takes.');
+      layer.querySelector('.practice-hint')?.replaceChildren('That’s it.');
       window.setTimeout(next, 900);
     });
 
     const render = () => {
       const slide = SLIDES[index];
       const last = index === SLIDES.length - 1;
-      const title = h('h1', {}, ...slide.title.split('\n').flatMap((line, i) => (i ? [h('br'), line] : [line])));
+      const title = h('h1', {}, slide.title);
       const actions = last
         ? [
-          h('button', { class: 'primary chatgpt', onclick: () => finish(true) }, 'Connect ChatGPT'),
-          h('button', { class: 'secondary', onclick: () => finish(false) }, 'Try the starter apps first'),
+          h('button', { class: 'btn mono', onclick: () => finish(true) }, 'Connect ChatGPT'),
+          h('button', { class: 'btn plain', onclick: () => finish(false) }, 'Try the Starter Apps'),
         ]
         : slide.practice
           ? [
-            h('p', { class: 'practice-hint' }, '👆 Use three fingers anywhere on the screen'),
-            h('button', { class: 'secondary', onclick: next }, 'Skip practice'),
+            h('p', { class: 'practice-hint' }, 'Use three fingers anywhere on the screen'),
+            h('button', { class: 'btn plain', onclick: next }, 'Skip'),
           ]
           : [
-            h('button', { class: 'primary', onclick: next }, index === 0 ? 'Show me how' : 'Next'),
-            h('button', { class: 'secondary', onclick: () => { index = SLIDES.length - 1; render(); } }, 'Skip tour'),
+            h('button', { class: 'btn primary', onclick: next }, 'Continue'),
+            h('button', { class: 'btn plain', onclick: () => { index = SLIDES.length - 1; render(); } }, 'Skip Tour'),
           ];
       layer.replaceChildren(
         h('div', { class: 'onb-art', key: String(index) }, slide.art()),
         h('div', { class: 'onb-copy' },
-          h('div', { class: 'dots-row' }, ...SLIDES.map((_, i) => h('span', { class: i === index ? 'on' : i < index ? 'past' : '' }))),
+          h('div', { class: 'dots-row', 'aria-label': `Step ${index + 1} of ${SLIDES.length}` }, ...SLIDES.map((_, i) => h('span', { class: i === index ? 'on' : '' }))),
           title,
-          h('p', { class: 'muted' }, slide.body),
+          h('p', { class: 'onb-body' }, slide.body),
           ...actions),
       );
     };

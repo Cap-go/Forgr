@@ -1,4 +1,7 @@
-const files = import.meta.glob('./skills/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+// import.meta.glob only exists under Vite; bun test runs without the skills.
+const files = (typeof import.meta.glob === 'function'
+  ? import.meta.glob('./skills/*.md', { query: '?raw', import: 'default', eager: true })
+  : {}) as Record<string, string>;
 
 interface Skill {
   name: string;
