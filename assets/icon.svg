@@ -1,4 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#2563eb"/>
-  <text x="32" y="32" dy="0.35em" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" font-size="32" font-weight="600" fill="#ffffff">M</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c5cff"/>
+      <stop offset="0.55" stop-color="#4b2bd6"/>
+      <stop offset="1" stop-color="#1b1145"/>
+    </linearGradient>
+    <linearGradient id="spark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe07a"/>
+      <stop offset="1" stop-color="#ff7a59"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="26" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect x="232" y="232" width="252" height="252" rx="64" fill="#ffffff"/>
+  <rect x="232" y="540" width="252" height="252" rx="64" fill="#ffffff" opacity="0.55"/>
+  <rect x="540" y="540" width="252" height="252" rx="64" fill="#ffffff" opacity="0.8"/>
+  <path filter="url(#glow)" fill="url(#spark)"
+        d="M666 222 C684 318 702 336 798 358 C702 380 684 398 666 494 C648 398 630 380 534 358 C630 336 648 318 666 222 Z"/>
 </svg>

@@ -1,0 +1,44 @@
+{
+  "name": "mapp",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.build.json && vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" \"plugins/**/*.ts\"",
+    "test": "bun test",
+    "cap:sync": "cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8",
+    "@capacitor/app": "^8",
+    "@capacitor/camera": "^8",
+    "@capacitor/clipboard": "^8",
+    "@capacitor/core": "^8",
+    "@capacitor/filesystem": "^8",
+    "@capacitor/geolocation": "^8",
+    "@capacitor/haptics": "^8",
+    "@capacitor/ios": "^8",
+    "@capacitor/keyboard": "^8",
+    "@capacitor/local-notifications": "^8",
+    "@capacitor/share": "^8",
+    "@capacitor/status-bar": "^8",
+    "@capgo/capacitor-inappbrowser": "^8.22.4",
+    "@capgo/capacitor-updater": "^8.52.1",
+    "@capgo/oauth-loopback": "file:./plugins/oauth-loopback",
+    "capacitor-secure-storage-plugin": "^0.13.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8",
+    "@eslint/js": "^10.0.1",
+    "@types/bun": "^1.4.2",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "typescript": "^7.0.2",
+    "typescript-eslint": "^8.71.1",
+    "vite": "^8.3.4"
+  }
+}
