@@ -1,7 +1,7 @@
 import { lifecycle } from '../lifecycle';
 import { createResponseStream, isTransientError } from './responses';
 import { session } from './session';
-import { MAPP_TOOL_NAMESPACE, runTool, type ToolContext } from './tools';
+import { runTool, toolNamespaceFor, type ToolContext } from './tools';
 import type { ChatMessage, ConversationItem, ParsedTurn } from './types';
 
 export interface AgentHooks {
@@ -44,7 +44,7 @@ export async function runAgent(
         accessToken,
         input,
         instructions,
-        tools: [MAPP_TOOL_NAMESPACE],
+        tools: [toolNamespaceFor(ctx)],
       });
       let parsed: ParsedTurn | undefined;
       for await (const event of stream) {

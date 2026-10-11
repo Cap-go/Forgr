@@ -1,6 +1,7 @@
 import { appStore } from '../apps/store';
 import { getLogs } from '../apps/bridge';
 import { capabilityNames } from '../apps/capabilities';
+import { LINK_SAFE_TOOLS } from '../links';
 import { cloud, memberName } from '../cloud/client';
 import { listSkills, readSkill } from '../skills';
 
@@ -141,6 +142,18 @@ export interface ToolContext {
   openApp(id: string): Promise<void>;
   /** Waits briefly so a freshly loaded app can report errors. */
   settle(): Promise<void>;
+  /**
+   * Set for runs started by an outside link: only LINK_SAFE_TOOLS, and only on
+   * apps created in this run, so a crafted prompt cannot read other apps,
+   * cloud data or spaces.
+   */
+  restricted?: { createdIds: Set<string> };
+}
+
+/** The tool namespace offered to the model, narrowed for link-started runs. */
+export function toolNamespaceFor(ctx: ToolContext): typeof MAPP_TOOL_NAMESPACE {
+  if (!ctx.restricted) return MAPP_TOOL_NAMESPACE;
+  return { ...MAPP_TOOL_NAMESPACE, tools: MAPP_TOOL_NAMESPACE.tools.filter((t) => LINK_SAFE_TOOLS.has(t.name)) };
 }
 
 export async function runTool(
@@ -150,6 +163,12 @@ export async function runTool(
 ): Promise<string> {
   if ('__invalid_json' in args) throw new Error('Tool arguments were not valid JSON. Try again with smaller edits.');
   const id = String(args.id ?? '');
+  if (ctx.restricted) {
+    if (!LINK_SAFE_TOOLS.has(name)) throw new Error(`${name} is not available for requests started from a link.`);
+    if (name !== 'create_app' && name !== 'list_skills' && name !== 'read_skill' && !ctx.restricted.createdIds.has(id)) {
+      throw new Error('Requests started from a link can only change the app they created.');
+    }
+  }
   switch (name) {
     case 'list_apps':
       return JSON.stringify((await appStore.load()).map(({ id: appId, name: n, emoji, description }) => ({ id: appId, name: n, emoji, description })));
@@ -164,6 +183,7 @@ export async function runTool(
         description: String(args.description ?? ''),
         html,
       });
+      ctx.restricted?.createdIds.add(app.id);
       await ctx.openApp(app.id);
       return JSON.stringify({ ok: true, id: app.id, opened: true, logs: await settleLogs(app.id, ctx), warnings: lintHtml(html) });
     }

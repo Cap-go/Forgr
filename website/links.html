@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mapp links: open Mapp and start building from anywhere</title>
+  <meta name="description" content="Deep links for Mapp. Any website, chat or AI assistant like ChatGPT can create a link that opens Mapp and starts building an app.">
+  <meta name="theme-color" content="#0d0a1f">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .doc { max-width: 820px; }
+    .doc h1 { font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -0.03em; margin: 0 0 12px; }
+    .doc h2 { font-size: 1.5rem; margin: 48px 0 12px; letter-spacing: -0.02em; }
+    .doc p, .doc li { color: var(--muted); line-height: 1.6; }
+    .doc code { font: 0.92em ui-monospace, SFMono-Regular, Menlo, monospace; background: rgba(245, 243, 255, 0.07); padding: 2px 6px; border-radius: 6px; color: var(--text); }
+    .doc pre { background: rgba(245, 243, 255, 0.05); border: 1px solid var(--line); border-radius: 14px; padding: 16px; overflow-x: auto; }
+    .doc pre code { background: none; padding: 0; white-space: pre; }
+    .table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.95rem; }
+    .table th, .table td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .table th { color: var(--text); font-weight: 600; }
+    .table td { color: var(--muted); }
+    .builder { display: grid; gap: 12px; margin-top: 16px; }
+    .builder label[hidden] { display: none; }
+    .builder label { display: grid; gap: 6px; color: var(--text); font-weight: 600; font-size: 0.95rem; }
+    .builder select, .builder input, .builder textarea { font: inherit; color: var(--text); background: rgba(245, 243, 255, 0.05); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .builder textarea { min-height: 90px; resize: vertical; }
+    .out { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+    .out code { flex: 1; min-width: 0; overflow-wrap: anywhere; padding: 12px; border-radius: 12px; }
+    .note { border-left: 3px solid var(--line); padding: 4px 0 4px 14px; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-in">
+      <a class="brand" href="/" aria-label="Mapp home">
+        <img src="assets/icon.svg" alt="" width="28" height="28">
+        <span>Mapp</span>
+      </a>
+      <nav aria-label="Main">
+        <ul class="nav-links">
+          <li><a href="/#how">How it works</a></li>
+          <li><a href="/#features">Features</a></li>
+          <li><a href="/links">Links</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-sm" href="/#beta">Join the beta</a>
+    </div>
+  </header>
+
+  <main id="main" class="section">
+    <div class="wrap doc">
+      <h1>Open Mapp from anywhere</h1>
+      <p>Any website, message, QR code or AI assistant can link straight into Mapp. One tap opens the app and starts building, opens one of your apps, or joins a shared space.</p>
+
+      <h2>Link format</h2>
+      <p>Use the web link. It opens Mapp when it is installed and a short page with install instructions when it is not.</p>
+      <pre><code>https://mapp-site.digitalshift-ee.workers.dev/l/&lt;action&gt;?&lt;parameters&gt;</code></pre>
+      <p>Inside apps that support custom schemes you can also use <code>mapp://&lt;action&gt;?&lt;parameters&gt;</code>. Encode parameter values with <code>encodeURIComponent</code>.</p>
+
+      <table class="table">
+        <thead><tr><th>Action</th><th>Parameters</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td><code>build</code></td><td><code>prompt</code> (required, up to 4000 chars)<br><code>name</code> (optional)</td><td>Opens Mapp and immediately starts building a new app from the prompt.</td></tr>
+          <tr><td><code>open</code></td><td><code>app</code>: app name or id</td><td>Opens one of the user's apps.</td></tr>
+          <tr><td><code>edit</code></td><td><code>app</code>, <code>prompt</code> (optional)</td><td>Opens the app with the editor and the change typed in. The user reviews it and taps send.</td></tr>
+          <tr><td><code>join</code></td><td><code>code</code>: invite code</td><td>Joins a shared space, then offers to build an app on it.</td></tr>
+          <tr><td><code>home</code></td><td>none</td><td>Opens the Mapp home screen.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Examples</h2>
+      <pre><code>https://mapp-site.digitalshift-ee.workers.dev/l/build?prompt=A%20water%20tracker%20with%20a%20daily%20goal%20and%20reminders
+https://mapp-site.digitalshift-ee.workers.dev/l/build?prompt=Split%20rent%20and%20bills%20between%203%20roommates&amp;name=Roomies
+https://mapp-site.digitalshift-ee.workers.dev/l/open?app=Habits
+https://mapp-site.digitalshift-ee.workers.dev/l/edit?app=Habits&amp;prompt=Add%20a%20weekly%20chart
+mapp://build?prompt=A%20compass%20that%20points%20to%20home</code></pre>
+
+      <h2>Build a link</h2>
+      <form class="builder" id="builder" onsubmit="return false">
+        <label>Action
+          <select id="action">
+            <option value="build">build: start a new app</option>
+            <option value="open">open: open an app</option>
+            <option value="edit">edit: change an app</option>
+            <option value="join">join: join a shared space</option>
+          </select>
+        </label>
+        <label id="f-prompt">Prompt<textarea id="prompt">A plant watering tracker with reminders</textarea></label>
+        <label id="f-name">App name (optional)<input id="name" placeholder="Leafy"></label>
+        <label id="f-app" hidden>App name<input id="app" placeholder="Habits"></label>
+        <label id="f-code" hidden>Invite code<input id="code" placeholder="ABCD-EFGH-JKLM-NPQR"></label>
+        <div class="out"><code id="result"></code><button class="btn btn-sm" id="copy" type="button">Copy</button></div>
+      </form>
+
+      <h2>Let ChatGPT make links</h2>
+      <p>Paste this into ChatGPT (or any assistant). It will answer with links that open Mapp and build what it suggests.</p>
+      <pre><code>When you suggest an app idea I could use, also give me a Mapp link that builds it:
+https://mapp-site.digitalshift-ee.workers.dev/l/build?prompt=&lt;URL-encoded description of the app&gt;
+Write the description as a short, complete brief: what it does, the main screens and what data it keeps.</code></pre>
+
+      <h2>Safety</h2>
+      <p class="note">A <code>build</code> link starts right away, but a request that comes from a link can only create a new app. It cannot read or change the user's other apps, their cloud data, shared spaces or server functions, so a link written by someone else cannot reach personal data. <code>edit</code> links only fill in the request; the user decides to send it. The user always needs to be signed in to their own ChatGPT account, and every build counts against their own plan.</p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap foot-in">
+      <div class="brand"><img src="assets/icon.svg" alt="" width="24" height="24" loading="lazy"><span>Mapp</span></div>
+      <ul class="foot-links">
+        <li><a href="/links">Links</a></li>
+        <li><a href="https://capgo.app/privacy/">Privacy</a></li>
+        <li><a href="https://capgo.app/tos/">Terms</a></li>
+        <li><a href="https://capgo.app/contact/">Support</a></li>
+      </ul>
+      <p class="legal">© 2026 Capgo (Digital shift OU). ChatGPT is a trademark of OpenAI. Mapp is not affiliated with OpenAI.</p>
+    </div>
+  </footer>
+
+  <script>
+    const base = 'https://mapp-site.digitalshift-ee.workers.dev/l/';
+    const $ = (id) => document.getElementById(id);
+    const fields = { build: ['prompt', 'name'], open: ['app'], edit: ['app', 'prompt'], join: ['code'] };
+    function update() {
+      const action = $('action').value;
+      for (const f of ['prompt', 'name', 'app', 'code']) $('f-' + f).hidden = !fields[action].includes(f);
+      const params = new URLSearchParams();
+      for (const f of fields[action]) if ($(f).value.trim()) params.set(f, $(f).value.trim());
+      $('result').textContent = base + action + (params.toString() ? '?' + params.toString().replace(/\+/g, '%20') : '');
+    }
+    $('builder').addEventListener('input', update);
+    $('copy').addEventListener('click', async () => {
+      await navigator.clipboard.writeText($('result').textContent);
+      $('copy').textContent = 'Copied';
+      setTimeout(() => ($('copy').textContent = 'Copy'), 1500);
+    });
+    update();
+  </script>
+</body>
+</html>

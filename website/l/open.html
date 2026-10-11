@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open in Mapp</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root { color-scheme: light dark; --bg: #f2f2f7; --card: #fff; --label: #000; --sec: rgba(60,60,67,.6); --btn: #000; --on: #fff; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #000; --card: #1c1c1e; --label: #fff; --sec: rgba(235,235,245,.6); --btn: #fff; --on: #000; } }
+    body { margin: 0; min-height: 100dvh; display: grid; place-items: center; background: var(--bg); color: var(--label); font: 17px -apple-system, system-ui, sans-serif; padding: 24px; box-sizing: border-box; }
+    .card { background: var(--card); border-radius: 22px; padding: 28px 24px; max-width: 400px; width: 100%; text-align: center; }
+    img { width: 64px; height: 64px; border-radius: 15px; }
+    h1 { font-size: 22px; margin: 14px 0 6px; }
+    p { color: var(--sec); line-height: 1.4; margin: 0 0 18px; }
+    blockquote { margin: 0 0 20px; padding: 12px 14px; border-radius: 12px; background: var(--bg); text-align: left; font-size: 15px; overflow-wrap: anywhere; }
+    a.btn { display: block; padding: 15px; border-radius: 14px; background: var(--btn); color: var(--on); text-decoration: none; font-weight: 600; margin-bottom: 10px; }
+    a.plain { color: var(--sec); font-size: 15px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="/assets/icon-1024.png" alt="">
+    <h1 id="title">Open in Mapp</h1>
+    <p id="lead">This link opens the Mapp app on iPhone.</p>
+    <blockquote id="what" hidden></blockquote>
+    <a class="btn" id="open" href="mapp://">Open Mapp</a>
+    <a class="plain" href="/#beta">Don't have Mapp yet? Join the beta</a>
+  </div>
+  <script>
+    const action = location.pathname.replace(/^\/l\//, '').replace(/\.html$/, '').split('/')[0] || 'home';
+    const q = new URLSearchParams(location.search);
+    const deep = 'mapp://' + action + (location.search || '');
+    document.getElementById('open').href = deep;
+    const what = document.getElementById('what');
+    const texts = {
+      build: ['Build this app', 'Mapp will start building:', q.get('prompt')],
+      open: ['Open an app', 'Opens your app:', q.get('app')],
+      edit: ['Change an app', 'Opens ' + (q.get('app') || 'your app') + ' with this change ready to send:', q.get('prompt')],
+      join: ['Join a shared space', 'Invite code:', q.get('code')],
+    };
+    const t = texts[action];
+    if (t) {
+      document.getElementById('title').textContent = t[0];
+      document.getElementById('lead').textContent = t[1];
+      if (t[2]) { what.textContent = t[2]; what.hidden = false; }
+    }
+    // Universal links normally open the app before this page loads; try the scheme as a fallback.
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) setTimeout(() => { location.href = deep; }, 300);
+  </script>
+</body>
+</html>

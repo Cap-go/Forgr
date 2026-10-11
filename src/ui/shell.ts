@@ -16,6 +16,7 @@ import { STARTER_APPS } from '../apps/templates';
 import { APP_LINKS, PREF_KEYS } from '../config';
 import { lifecycle } from '../lifecycle';
 import { PinchDetector } from './gesture';
+import { parseLink, type LinkAction } from '../links';
 import { showOnboarding } from './onboarding';
 import { h, icon } from './dom';
 
@@ -297,24 +298,58 @@ export class Shell {
 
   // ---------------------------------------------------------------- links
 
-  private pendingJoin: string | null = null;
 
-  /** mapp://join?code=XXXX-XXXX-XXXX-XXXX from a shared invite link. */
+  private pendingLink: LinkAction | null = null;
+
+  /** mapp://… and https://<site>/l/… links from other apps, ChatGPT, QR codes. */
   private handleLink(url: string): void {
-    let code: string | null = null;
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol === 'mapp:' && (parsed.host === 'join' || parsed.pathname.includes('join'))) code = parsed.searchParams.get('code');
-    } catch {
-      return;
-    }
-    if (!code) return;
-    if (!session.signedIn) {
-      this.pendingJoin = code;
+    const link = parseLink(url);
+    if (!link) return;
+    void this.runLink(link);
+  }
+
+  private async runLink(link: LinkAction): Promise<void> {
+    if (document.body.classList.contains('onboarding-open')) return;
+    const needsAccount = link.action === 'build' || link.action === 'join' || (link.action === 'edit' && link.prompt);
+    if (needsAccount && !session.signedIn) {
+      this.pendingLink = link;
       this.showSignIn();
       return;
     }
-    void this.joinSpace(code);
+    switch (link.action) {
+      case 'home':
+        this.goHome();
+        return;
+      case 'join':
+        await this.joinSpace(link.code);
+        return;
+      case 'open':
+      case 'edit': {
+        const wanted = link.app.toLowerCase();
+        const app = appStore.list().find((a) => a.id === link.app || a.name.toLowerCase() === wanted);
+        if (!app) {
+          this.toast(`No app called "${link.app}"`);
+          return;
+        }
+        await this.openApp(app.id);
+        // Edits from a link are only prefilled: the user reviews and sends.
+        if (link.action === 'edit') this.openChat(app.id, link.prompt);
+        return;
+      }
+      case 'build': {
+        if (this.running) {
+          this.toast('Finish the current request first');
+          return;
+        }
+        this.goHome();
+        this.openChat(null);
+        await this.loadConversation(HOME_CHAT);
+        const prompt = link.name ? `${link.prompt}\n\nName the app "${link.name}".` : link.prompt;
+        this.input.value = '';
+        void this.run(prompt, false, true);
+        return;
+      }
+    }
   }
 
   private async joinSpace(code: string): Promise<void> {
@@ -567,11 +602,12 @@ export class Shell {
     void this.run(text);
   }
 
-  private async run(text: string, retry = false): Promise<void> {
+  private async run(text: string, retry = false, fromLink = false): Promise<void> {
     const conversation = this.conversation;
     if (!conversation.messages.length) this.messagesEl.replaceChildren();
     // Continue from the last finished step when an earlier run was interrupted.
     const saved = retry ? await appStore.readJob(conversation.key) : null;
+    if (saved?.restricted) fromLink = true;
     const job = { prompt: text, key: conversation.key };
     if (retry) {
       // Drop the failed answer; the user message stays as the prompt.
@@ -582,7 +618,10 @@ export class Shell {
       this.messagesEl.append(this.bubbleFor('user', text));
       // Saved now so the request survives iOS killing Mapp mid-run.
       await appStore.writeChat(conversation.key, conversation.messages);
-      await appStore.writeJob(conversation.key, { prompt: text, input: [], answer: '', savedAt: Date.now() });
+      await appStore.writeJob(conversation.key, { prompt: text, input: [], answer: '', savedAt: Date.now(), restricted: fromLink });
+      if (fromLink) {
+        this.messagesEl.append(h('div', { class: 'msg assistant note' }, 'Started from a link. This request can only create a new app.'));
+      }
     }
     const status = h('div', { class: 'status' }, h('span', { class: 'dots', 'aria-hidden': 'true' }), 'Thinking…');
     let reply = h('div', { class: 'msg assistant streaming' });
@@ -609,6 +648,7 @@ export class Shell {
             this.updateChrome();
           },
           settle: () => new Promise((r) => window.setTimeout(r, 1200)),
+          ...(fromLink ? { restricted: { createdIds: new Set<string>() } } : {}),
         },
         {
           onDelta: (delta) => {
@@ -637,7 +677,7 @@ export class Shell {
               void appStore.clearJob(job.key);
               job.key = conversation.key;
             }
-            void appStore.writeJob(job.key, { prompt: job.prompt, input, answer, savedAt: Date.now() });
+            void appStore.writeJob(job.key, { prompt: job.prompt, input, answer, savedAt: Date.now(), restricted: fromLink });
           },
           onRetry: () => {
             reply.remove();
@@ -664,7 +704,7 @@ export class Shell {
       } else {
         this.messagesEl.insertBefore(h('div', { class: 'error-block' },
           h('p', {}, friendlyError(message)),
-          h('button', { class: 'retry', onclick: () => { if (!this.running) void this.run(text, true); } }, icon('undo'), 'Try again')), status);
+          h('button', { class: 'retry', onclick: () => { if (!this.running) void this.run(text, true, fromLink); } }, icon('undo'), 'Try again')), status);
       }
     } finally {
       reply.classList.remove('streaming');
@@ -704,10 +744,10 @@ export class Shell {
           await session.signIn();
           close();
           this.toast(`Signed in as ${session.credentials?.email ?? 'ChatGPT user'}`);
-          if (this.pendingJoin) {
-            const code = this.pendingJoin;
-            this.pendingJoin = null;
-            void this.joinSpace(code);
+          if (this.pendingLink) {
+            const link = this.pendingLink;
+            this.pendingLink = null;
+            void this.runLink(link);
           } else if (this.pendingPrompt) {
             const text = this.pendingPrompt;
             this.pendingPrompt = null;

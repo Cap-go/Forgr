@@ -7,6 +7,8 @@ export interface PendingJob {
   input: ConversationItem[];
   answer: string;
   savedAt: number;
+  /** Started from an outside link: keeps the restricted toolset on resume. */
+  restricted?: boolean;
 }
 
 export interface MiniAppMeta {
