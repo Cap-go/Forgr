@@ -679,3 +679,5 @@ h5.md-h, h6.md-h { font-size: 15px; color: var(--secondary); }
 }
 .capgo-pill:active { opacity: 0.6; }
 .capgo-pill .capgo-logo { width: 34px; height: 34px; border-radius: 50%; box-shadow: none; }
+.about-check { margin-top: 10px; height: 36px; padding: 0 12px; color: var(--secondary); font-size: 15px; }
+.about-check[disabled] { opacity: 0.6; }

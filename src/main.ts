@@ -1,5 +1,11 @@
+import { Capacitor } from '@capacitor/core';
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
 import { session } from './ai/session';
 import { Shell } from './ui/shell';
+
+// Confirm this bundle started before anything slow runs, so Capgo never
+// rolls back a good live update because startup took a few seconds.
+if (Capacitor.isNativePlatform()) void CapacitorUpdater.notifyAppReady().catch(() => undefined);
 
 const root = document.getElementById('app');
 if (!root) throw new Error('Missing #app root');

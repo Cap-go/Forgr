@@ -1037,12 +1037,17 @@ export class Shell {
   private showSettings(): void {
     this.showModal((close) => {
       const version = h('p', { class: 'about-version' }, `Version ${__APP_VERSION__}`);
+      const updateNote = h('p', { class: 'about-note' }, '');
       if (Capacitor.isNativePlatform()) {
         void CapacitorUpdater.current().then((c) => {
-          const live = c.bundle.version === 'builtin' ? __APP_VERSION__ : c.bundle.version;
-          version.textContent = `Version ${c.native} · ${live}`;
+          // The built-in bundle reports the native version as its "version"; its id is what tells it apart.
+          const builtin = c.bundle.id === 'builtin';
+          version.textContent = builtin ? `App ${c.native} · built-in code` : `App ${c.native} · Live update ${c.bundle.version}`;
+          updateNote.textContent = builtin ? 'No live update installed yet.' : `Code ${__APP_VERSION__} delivered by Capgo.`;
         }).catch(() => undefined);
       }
+      const checkBtn = h('button', { class: 'about-check' }, 'Check for updates');
+      checkBtn.addEventListener('click', () => void this.checkForUpdate(checkBtn));
       const open = (url: string) => {
         if (Capacitor.isNativePlatform()) void InAppBrowser.open({ url });
         else window.open(url, '_blank', 'noopener');
@@ -1088,7 +1093,9 @@ export class Shell {
           h('p', { class: 'about-author' }, 'Made by ',
             h('a', { href: AUTHOR_URL, onclick: (e: Event) => { e.preventDefault(); openInSafari(AUTHOR_URL); } }, 'Martin Donadieu')),
           h('p', { class: 'about-note' }, 'Built with Capacitor and shipped with Capgo live updates.'),
-          h('button', { class: 'capgo-pill', onclick: () => openInSafari(CAPGO_URL) }, capgoLogo(), 'Made with Capgo')),
+          updateNote,
+          h('button', { class: 'capgo-pill', onclick: () => openInSafari(CAPGO_URL) }, capgoLogo(), 'Made with Capgo'),
+          checkBtn),
       ];
     });
   }
@@ -1098,6 +1105,35 @@ export class Shell {
       localStorage.setItem(PREF_KEYS.onboarded, '1');
       if (connect && !session.signedIn) this.showSignIn();
     });
+  }
+
+  /** Asks Capgo for the channel's bundle now and installs it (delta when possible). */
+  private async checkForUpdate(button: HTMLElement): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    button.setAttribute('disabled', '');
+    button.textContent = 'Checking…';
+    try {
+      const [current, latest] = await Promise.all([CapacitorUpdater.current(), CapacitorUpdater.getLatest()]);
+      const info = latest as typeof latest & { url?: string; manifest?: unknown[] };
+      if (info.error || !info.url || !info.version || info.version === current.bundle.version) {
+        this.toast(info.error && info.error !== 'no_new_version_available' ? `Capgo: ${info.error}` : `Up to date (${current.bundle.id === 'builtin' ? current.native : current.bundle.version})`);
+        return;
+      }
+      button.textContent = `Downloading ${info.version}…`;
+      const bundle = await CapacitorUpdater.download({
+        url: info.url,
+        version: info.version,
+        checksum: info.checksum,
+        sessionKey: info.sessionKey,
+        ...(info.manifest ? { manifest: info.manifest as never } : {}),
+      });
+      await CapacitorUpdater.set({ id: bundle.id });
+    } catch (error) {
+      this.toast(error instanceof Error ? error.message : String(error));
+    } finally {
+      button.removeAttribute('disabled');
+      button.textContent = 'Check for updates';
+    }
   }
 
   private showUpdateReady(id: string, version: string): void {
