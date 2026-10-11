@@ -8,6 +8,8 @@ export interface ResponseRequest {
   instructions: string;
   /** Function tools grouped in a namespace (required for ChatGPT plan usage). */
   tools?: unknown[];
+  /** Aborts the HTTP request itself, so Stop is immediate. */
+  signal?: AbortSignal;
 }
 
 export function isUsageLimitError(body: string): boolean {
@@ -84,8 +86,10 @@ async function openStream(req: ResponseRequest): Promise<AsyncIterable<StreamEve
         Accept: 'text/event-stream',
       },
       body,
+      signal: req.signal,
     });
   } catch (error) {
+    if (req.signal?.aborted) throw new Error('Stopped');
     if (!Capacitor.isNativePlatform()) throw error;
     const native = await httpRequest(RESPONSES_API_URL, 'POST', req.accessToken, body);
     if (native.status < 200 || native.status >= 300) throw new Error(formatApiError(native.status, native.text));

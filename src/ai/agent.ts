@@ -50,16 +50,22 @@ export async function runAgent(
         input,
         instructions,
         tools: [toolNamespaceFor(ctx)],
+        signal,
       });
       let parsed: ParsedTurn | undefined;
-      for await (const event of stream) {
+      try {
+        for await (const event of stream) {
+          if (signal?.aborted) throw new Error('Stopped');
+          if (event.type === 'text_delta') hooks.onDelta(event.delta);
+          else if (event.type === 'tool_progress') hooks.onToolProgress?.(event.name, event.chars);
+          else if (event.type === 'reasoning_delta') hooks.onReasoning?.(event.delta);
+          else if (event.type === 'tool_begin') hooks.onPhase?.('tool_begin', event.name);
+          else if (event.type === 'connected') hooks.onPhase?.(event.buffered ? 'connected-buffered' : 'waiting');
+          else parsed = event.parsed;
+        }
+      } catch (error) {
         if (signal?.aborted) throw new Error('Stopped');
-        if (event.type === 'text_delta') hooks.onDelta(event.delta);
-        else if (event.type === 'tool_progress') hooks.onToolProgress?.(event.name, event.chars);
-        else if (event.type === 'reasoning_delta') hooks.onReasoning?.(event.delta);
-        else if (event.type === 'tool_begin') hooks.onPhase?.('tool_begin', event.name);
-        else if (event.type === 'connected') hooks.onPhase?.(event.buffered ? 'connected-buffered' : 'waiting');
-        else parsed = event.parsed;
+        throw error;
       }
       if (!parsed) throw new Error('ChatGPT stream ended before completion');
       return parsed;

@@ -62,6 +62,7 @@ export class Shell {
   private input = h('textarea', { rows: 1, placeholder: 'Describe an app or a change…', enterkeyhint: 'send' });
   private sendBtn = h('button', { class: 'send', 'aria-label': 'Send' }, icon('send'));
   private sheetTitle = h('div', { class: 'sheet-title' });
+  private newChatBtn = h('button', { class: 'chip icon-only', 'aria-label': 'New chat' }, icon('compose'));
   private undoBtn = h('button', { class: 'chip', 'aria-label': 'Undo last change' }, 'Undo');
 
   /** Swappable for the scripted dev demo. */
@@ -226,7 +227,8 @@ export class Shell {
   async openApp(id: string): Promise<void> {
     const app = appStore.require(id);
     this.closeSwitcher(true);
-    if (this.currentAppId !== id && this.conversation.key !== HOME_CHAT && !this.running) {
+    // Each app keeps its own conversation in its folder: show it when the app opens.
+    if (!this.running && this.conversation.key !== id) {
       await this.loadConversation(id);
     }
     if (this.running && this.conversation.key === HOME_CHAT) {
@@ -436,6 +438,7 @@ export class Shell {
       if (this.running) this.running.abort();
       else this.submit();
     });
+    this.newChatBtn.addEventListener('click', () => void this.newChat());
     this.undoBtn.addEventListener('click', async () => {
       if (!this.currentAppId || this.running) return;
       if (await appStore.undo(this.currentAppId)) {
@@ -453,7 +456,7 @@ export class Shell {
     this.sheet.append(
       grabber,
       h('header', { class: 'sheet-head' },
-        h('div', { class: 'head-side' }, this.undoBtn),
+        h('div', { class: 'head-side' }, this.newChatBtn, this.undoBtn),
         this.sheetTitle,
         h('div', { class: 'head-side end' },
           h('button', { class: 'chip icon-only', 'aria-label': 'Hide chat', onclick: () => this.collapseSheet() }, icon('chevronDown')),
@@ -517,6 +520,22 @@ export class Shell {
       this.autosize();
     }
     if (!Capacitor.isNativePlatform() || !appId) window.setTimeout(() => this.input.focus(), 250);
+  }
+
+  /** Clears the current conversation; the app's code and data are kept. */
+  private async newChat(): Promise<void> {
+    if (this.running) {
+      this.toast('Stop the current request first');
+      return;
+    }
+    const key = this.conversation.key;
+    await appStore.clearChat(key);
+    this.conversation = { key, messages: [] };
+    this.renderMessages();
+    this.input.value = '';
+    this.autosize();
+    haptic();
+    window.setTimeout(() => this.input.focus(), 100);
   }
 
   private collapseSheet(): void {
