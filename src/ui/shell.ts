@@ -36,8 +36,8 @@ const HOME_CHAT = 'home';
 const SUGGESTIONS = [
   'A grocery list I can share with my partner',
   'A workout log with charts of my progress',
-  'A daily journal with mood emojis',
   'A plant watering reminder',
+  'Explain compound interest with sliders I can play with',
 ];
 
 interface Conversation {

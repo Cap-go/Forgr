@@ -26,7 +26,29 @@ const SLIDES: Slide[] = [
   {
     art: () => h('div', { class: 'art art-welcome' }, icon('logo', 'welcome-logo')),
     title: 'Welcome to Mapp',
-    body: 'Apps made just for you. Describe what you need and it is built right on your iPhone.',
+    body: 'Build the small tools you wish you had, just by describing them. They are made for you and live on your iPhone.',
+  },
+  {
+    art: () => h('div', { class: 'art art-tools' },
+      mockApp('Your tools', [
+        { text: 'Water the plants reminder', on: true },
+        { text: 'Rent split for 3 roommates' },
+        { text: 'Climbing grades log' },
+        { text: 'Baby feeding timer' },
+      ])),
+    title: 'Tiny tools, just for you',
+    body: 'Mapp is for personal tools that fill your own gaps. They are not meant to become products: you do not publish or sell them, you just use them.',
+  },
+  {
+    art: () => h('div', { class: 'art art-learn' },
+      h('div', { class: 'mock-app' },
+        h('div', { class: 'mock-title' }, 'Compound interest'),
+        h('div', { class: 'learn-bars' }, ...[18, 24, 31, 40, 52, 67, 86].map((height, i) =>
+          h('span', { style: `--h:${height}%;--d:${i * 0.12}s` }))),
+        h('div', { class: 'learn-slider' }, h('span', { class: 'learn-knob' })),
+        h('div', { class: 'learn-caption' }, '7% a year · 10 years'))),
+    title: 'Learn by playing',
+    body: 'Ask for an interactive explainer: compound interest, how vaccines work, chord progressions. Move the sliders and the idea clicks.',
   },
   {
     art: () => h('div', { class: 'art art-build' },
