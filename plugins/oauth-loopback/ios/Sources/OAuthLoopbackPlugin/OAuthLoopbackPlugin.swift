@@ -1,6 +1,7 @@
 import Foundation
 import Capacitor
 import Network
+import AuthenticationServices
 
 @objc(OAuthLoopbackPlugin)
 public class OAuthLoopbackPlugin: CAPPlugin, CAPBridgedPlugin {
@@ -10,9 +11,46 @@ public class OAuthLoopbackPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "start", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "waitForCallback", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise),
     ]
 
     private var sessions: [String: LoopbackSession] = [:]
+    private var authSession: ASWebAuthenticationSession?
+    private let presentation = AuthPresentation()
+
+    /// Opens the system sign-in sheet (ASWebAuthenticationSession). It shares
+    /// Safari's cookies, so an existing ChatGPT login is reused, and it gets
+    /// full AutoFill: Keychain passwords, passkeys, Sign in with Apple/Google.
+    /// The loopback server answers the 127.0.0.1 redirect with a 302 to
+    /// `callbackScheme://…`, which closes the sheet.
+    @objc func authenticate(_ call: CAPPluginCall) {
+        guard let urlString = call.getString("url"), let url = URL(string: urlString),
+              let scheme = call.getString("callbackScheme") else {
+            call.reject("url and callbackScheme are required")
+            return
+        }
+        DispatchQueue.main.async {
+            self.presentation.anchor = self.bridge?.viewController?.view.window
+            let session = ASWebAuthenticationSession(url: url, callbackURLScheme: scheme) { callbackURL, error in
+                self.authSession = nil
+                if let error = error as? ASWebAuthenticationSessionError, error.code == .canceledLogin {
+                    call.reject("Sign in was cancelled", "CANCELLED")
+                } else if let error = error {
+                    call.reject(error.localizedDescription, "FAILED")
+                } else {
+                    call.resolve(["url": callbackURL?.absoluteString ?? ""])
+                }
+            }
+            session.presentationContextProvider = self.presentation
+            // false = share Safari's session, so an existing login is reused.
+            session.prefersEphemeralWebBrowserSession = call.getBool("ephemeral") ?? false
+            self.authSession = session
+            if !session.start() {
+                self.authSession = nil
+                call.reject("Could not open the sign in sheet", "FAILED")
+            }
+        }
+    }
 
     @objc func start(_ call: CAPPluginCall) {
         let path = call.getString("path") ?? "/auth/callback"
@@ -227,5 +265,13 @@ private final class LoopbackSession {
             }
         }
         return result
+    }
+}
+
+private final class AuthPresentation: NSObject, ASWebAuthenticationPresentationContextProviding {
+    weak var anchor: UIWindow?
+
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        return anchor ?? ASPresentationAnchor()
     }
 }

@@ -1082,7 +1082,7 @@ export class Shell {
         h('div', { class: 'signin' },
           icon('logo', 'modal-logo'),
           h('h2', {}, 'Connect ChatGPT'),
-          h('p', { class: 'secondary-text' }, 'Mapp builds your apps with your own ChatGPT plan. No Mapp account. Your sign in stays in the iOS Keychain.'),
+          h('p', { class: 'secondary-text' }, 'Mapp builds your apps with your own ChatGPT plan. If you are already signed in to ChatGPT in Safari, it is one tap, and your saved passwords and passkeys work. No Mapp account.'),
           btn,
           error,
           h('button', { class: 'btn plain', onclick: close }, 'Not Now'),

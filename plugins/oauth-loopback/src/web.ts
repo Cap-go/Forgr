@@ -64,6 +64,10 @@ export class OAuthLoopbackWeb extends WebPlugin implements OAuthLoopbackPlugin {
     });
   }
 
+  async authenticate(): Promise<{ url: string }> {
+    throw this.unimplemented('authenticate is only available on iOS');
+  }
+
   async stop(options: OAuthLoopbackStopOptions): Promise<void> {
     sessions.delete(options.sessionId);
   }

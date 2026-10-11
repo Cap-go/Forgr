@@ -68,6 +68,8 @@ export async function beginOAuthAttempt(
 
   const loopback = await OAuthLoopback.start({
     path: OAUTH_CALLBACK_PATH,
+    // Lets the loopback server close the system sign-in sheet after the redirect.
+    completionUri: SYSTEM_AUTH_COMPLETION,
   });
   const redirectUri = loopback.redirectUri;
 
@@ -91,8 +93,32 @@ export async function runAuthorizationInBrowser(
   if (Capacitor.getPlatform() === 'web') {
     return runWebLoopbackAuth(attempt, authorizeUrl);
   }
-
+  if (Capacitor.getPlatform() === 'ios') {
+    try {
+      return await runSystemAuth(attempt, authorizeUrl);
+    } catch (error) {
+      // The user closing the sheet is a real cancel; anything else (older
+      // native build without authenticate, sheet failing) uses the web view.
+      if ((error as { code?: string }).code === 'CANCELLED') throw new Error('Sign in was cancelled');
+    }
+  }
   return runNativeWebViewAuth(attempt, authorizeUrl);
+}
+
+const SYSTEM_AUTH_SCHEME = 'mapp';
+const SYSTEM_AUTH_COMPLETION = `${SYSTEM_AUTH_SCHEME}://oauth/complete`;
+
+/**
+ * iOS system sign-in sheet (ASWebAuthenticationSession): shares Safari's
+ * ChatGPT login and supports Keychain passwords, passkeys and Sign in with
+ * Apple/Google. OpenAI redirects to the loopback server, which captures the
+ * code and answers with a 302 to mapp://oauth/complete to close the sheet.
+ */
+async function runSystemAuth(attempt: PendingOAuthAttemptInternal, authorizeUrl: string): Promise<OAuthCallbackParams> {
+  const callback = OAuthLoopback.waitForCallback({ sessionId: attempt.loopbackSessionId, timeoutMs: 600_000 });
+  callback.catch(() => undefined);
+  await OAuthLoopback.authenticate({ url: authorizeUrl, callbackScheme: SYSTEM_AUTH_SCHEME });
+  return callback;
 }
 
 /** Mobile Safari UA so identity providers (Google) accept the embedded login. */

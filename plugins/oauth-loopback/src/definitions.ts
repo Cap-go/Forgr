@@ -33,7 +33,18 @@ export interface OAuthLoopbackStopOptions {
   sessionId: string;
 }
 
+export interface OAuthLoopbackAuthenticateOptions {
+  /** Authorization URL to open in the system sign-in sheet. */
+  url: string;
+  /** App URL scheme that closes the sheet (the loopback completionUri uses it). */
+  callbackScheme: string;
+  /** true = private session without Safari cookies. Default false. */
+  ephemeral?: boolean;
+}
+
 export interface OAuthLoopbackPlugin {
+  /** iOS: ASWebAuthenticationSession. Rejects with code CANCELLED when the user closes it. */
+  authenticate(options: OAuthLoopbackAuthenticateOptions): Promise<{ url: string }>;
   start(options: OAuthLoopbackStartOptions): Promise<OAuthLoopbackStartResult>;
   waitForCallback(options: OAuthLoopbackWaitOptions): Promise<OAuthLoopbackCallbackResult>;
   stop(options: OAuthLoopbackStopOptions): Promise<void>;
