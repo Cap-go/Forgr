@@ -14,6 +14,7 @@ import { appStore, type MiniAppMeta } from '../apps/store';
 import { STARTER_APPS } from '../apps/templates';
 import { APP_LINKS, PREF_KEYS } from '../config';
 import { PinchDetector } from './gesture';
+import { showOnboarding } from './onboarding';
 import { h, icon } from './dom';
 
 const HOME_CHAT = 'home';
@@ -58,6 +59,9 @@ export class Shell {
   private sendBtn = h('button', { class: 'send', 'aria-label': 'Send' }, icon('send'));
   private sheetTitle = h('div', { class: 'sheet-title' });
   private undoBtn = h('button', { class: 'chip', 'aria-label': 'Undo last change' }, icon('undo'), 'Undo');
+
+  /** Swappable for the scripted dev demo. */
+  agent: typeof runAgent = runAgent;
 
   constructor(private readonly root: HTMLElement) {}
 
@@ -275,6 +279,7 @@ export class Shell {
 
   openSwitcher(): void {
     if (!this.switcher.classList.contains('hidden')) return;
+    if (document.body.classList.contains('onboarding-open')) return;
     haptic(ImpactStyle.Medium);
     this.input.blur();
     this.renderSwitcher();
@@ -512,7 +517,7 @@ export class Shell {
 
     const current = this.currentAppId ? appStore.get(this.currentAppId) : undefined;
     try {
-      const answer = await runAgent(
+      const answer = await this.agent(
         conversation.messages,
         buildInstructions(current, appStore.list()),
         {
@@ -652,39 +657,10 @@ export class Shell {
   }
 
   private showOnboarding(): void {
-    const slides = [
-      { art: h('div', { class: 'art art-apps' }, ...['✅', '💸', '⏳', '🌱', '📓', '✨'].map((e, i) =>
-        h('span', { class: 'tile', style: `--tile:${['#22c55e', '#f59e0b', '#8b5cf6', '#10b981', '#ef4444', '#6d4dff'][i]}` }, e))),
-        title: 'Your own apps,\nmade by you', body: 'Mapp is a phone full of apps that only you have. Habit trackers, lists, timers, journals: whatever you need.' },
-      { art: h('div', { class: 'art art-chat' },
-        h('div', { class: 'msg user' }, 'Add a chart of my weekly streaks'),
-        h('div', { class: 'msg assistant' }, 'Done! Your Habits app now shows a weekly chart.')),
-        title: 'Just ask', body: 'Describe what you want and AI builds or changes the app right away, using your ChatGPT plan.' },
-      { art: h('div', { class: 'art art-pinch' }, h('span', { class: 'f f1' }), h('span', { class: 'f f2' }), h('span', { class: 'f f3' })),
-        title: 'Pinch with\nthree fingers', body: 'Inside any app, pinch three fingers together to go home, edit the app, or switch to another one.' },
-    ];
-    let index = 0;
-    const layer = h('div', { class: 'onboarding' });
-    const render = () => {
-      const slide = slides[index];
-      const last = index === slides.length - 1;
-      layer.replaceChildren(
-        h('div', { class: 'onb-art' }, slide.art),
-        h('h1', {}, ...slide.title.split('\n').flatMap((line, i) => i ? [h('br'), line] : [line])),
-        h('p', { class: 'muted' }, slide.body),
-        h('div', { class: 'dots-row' }, ...slides.map((_, i) => h('span', { class: i === index ? 'on' : '' }))),
-        h('button', { class: 'primary', onclick: () => {
-          haptic();
-          if (!last) { index++; render(); return; }
-          localStorage.setItem(PREF_KEYS.onboarded, '1');
-          layer.remove();
-          if (!session.signedIn) this.showSignIn();
-        } }, last ? 'Start building' : 'Next'),
-        ...(last ? [] : [h('button', { class: 'secondary', onclick: () => { localStorage.setItem(PREF_KEYS.onboarded, '1'); layer.remove(); } }, 'Skip')]),
-      );
-    };
-    render();
-    this.root.append(layer);
+    void showOnboarding(this.root).then((connect) => {
+      localStorage.setItem(PREF_KEYS.onboarded, '1');
+      if (connect && !session.signedIn) this.showSignIn();
+    });
   }
 
   private toast(text: string): void {

@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #0d0a1f; font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif; }
+  .bg { position: absolute; inset: 0; background:
+    radial-gradient(70% 40% at 50% 0%, #4b2bd6 0%, transparent 70%),
+    radial-gradient(60% 35% at 50% 105%, #7c5cff55 0%, transparent 70%), #0d0a1f; }
+  .caption { position: absolute; top: 70px; left: 60px; right: 60px; text-align: center; color: #f5f3ff;
+    font-size: 64px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; transition: opacity .35s, transform .35s; }
+  .caption small { display: block; font-size: 32px; font-weight: 500; color: #c9c3ef; margin-top: 14px; letter-spacing: 0; }
+  .caption.out { opacity: 0; transform: translateY(-14px); }
+  .phone { position: absolute; left: 50%; top: 290px; width: 393px; height: 852px; transform-origin: top center;
+    transform: translateX(-50%) scale(1.72); border-radius: 56px; overflow: hidden;
+    box-shadow: 0 0 0 10px #1d1838, 0 0 0 12px #3a3166, 0 60px 120px -30px #000; background: #000; }
+  .phone iframe { width: 393px; height: 852px; border: 0; display: block; }
+  .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 122px; height: 35px; border-radius: 20px; background: #000; z-index: 5; }
+  .home-ind { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: #fffb; z-index: 5; mix-blend-mode: difference; }
+  .finger { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: #ffffffd0;
+    box-shadow: 0 0 0 6px #ffffff40, 0 0 30px #ffe07a; z-index: 9; pointer-events: none; transition: all .7s cubic-bezier(.2,.8,.2,1); }
+  .brand { position: absolute; bottom: 52px; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 18px; color: #f5f3ff; font-size: 40px; font-weight: 700; }
+  .brand img { width: 64px; height: 64px; border-radius: 15px; }
+  .brand span { color: #a7a1c9; font-weight: 500; font-size: 30px; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="caption out" id="cap"></div>
+<div class="phone" id="phone">
+  <div class="island"></div>
+  <iframe id="app" src="/?demo=1"></iframe>
+  <div class="home-ind"></div>
+</div>
+<div class="brand"><img src="/store/icon/icon-1024.png" alt="">Mapp <span>· build your own apps</span></div>
+<script>
+  const cap = document.getElementById('cap');
+  window.caption = (title, sub = '') => new Promise((r) => {
+    cap.classList.add('out');
+    setTimeout(() => { cap.innerHTML = title + (sub ? `<small>${sub}</small>` : ''); cap.classList.toggle('out', !title); r(); }, 350);
+  });
+  const phone = document.getElementById('phone');
+  // Coordinates are in app (393x852) space.
+  window.tap = (x, y) => new Promise((r) => {
+    const f = document.createElement('div'); f.className = 'finger';
+    f.style.left = x + 'px'; f.style.top = y + 'px'; f.style.opacity = '0'; f.style.transform = 'scale(1.6)';
+    phone.append(f);
+    requestAnimationFrame(() => { f.style.opacity = '1'; f.style.transform = 'scale(1)'; });
+    setTimeout(() => { f.style.opacity = '0'; f.style.transform = 'scale(.6)'; }, 450);
+    setTimeout(() => { f.remove(); r(); }, 1000);
+  });
+  window.pinch = (cx = 196, cy = 400) => new Promise((r) => {
+    const pts = [[0, -150], [-130, 90], [130, 90]].map(([dx, dy]) => {
+      const f = document.createElement('div'); f.className = 'finger';
+      f.style.left = cx + dx + 'px'; f.style.top = cy + dy + 'px'; f.style.opacity = '0';
+      phone.append(f); return [f, dx, dy];
+    });
+    requestAnimationFrame(() => pts.forEach(([f]) => (f.style.opacity = '1')));
+    setTimeout(() => pts.forEach(([f, dx, dy]) => { f.style.transition = 'all .9s cubic-bezier(.5,0,.2,1)'; f.style.left = cx + dx * .25 + 'px'; f.style.top = cy + dy * .25 + 'px'; }), 450);
+    setTimeout(() => pts.forEach(([f]) => (f.style.opacity = '0')), 1450);
+    setTimeout(() => { pts.forEach(([f]) => f.remove()); r(); }, 1900);
+  });
+</script>
+</body>
+</html>

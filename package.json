@@ -33,12 +33,14 @@
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8",
+    "@cloudflare/vite-plugin": "^1.63.1",
     "@eslint/js": "^10.0.1",
     "@types/bun": "^1.4.2",
     "eslint": "^10.12.0",
     "globals": "^17.13.0",
     "typescript": "^7.0.2",
     "typescript-eslint": "^8.71.1",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "wrangler": "^4.149.0"
   }
 }

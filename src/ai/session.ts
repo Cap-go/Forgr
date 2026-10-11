@@ -31,6 +31,11 @@ class Session {
     }
   }
 
+  /** Dev demo only: look signed in without real credentials. */
+  demo(email: string): void {
+    this.set({ email, expiresAtMs: Number.MAX_SAFE_INTEGER } as OAuthCredentialRecord);
+  }
+
   async signIn(): Promise<void> {
     this.set(await completeSignIn(this.creds?.clientId ?? null));
   }
