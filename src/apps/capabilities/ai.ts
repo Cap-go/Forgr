@@ -1,18 +1,22 @@
 import { completeText, createResponseStream, resolveModel } from '../../ai/responses';
 import { session } from '../../ai/session';
 import type { ConversationItem } from '../../ai/types';
+import { readMediaAsDataUrl } from '../media';
 import type { CapabilityContext, CapabilityGroup } from './types';
 import { obj } from './util';
 
 const MAX_IMAGES = 4;
 
 /** Builds Responses API input from a prompt or a message list, plus optional images. */
-function buildInput(args: Record<string, unknown>): ConversationItem[] {
+async function buildInput(args: Record<string, unknown>, ctx: CapabilityContext): Promise<ConversationItem[]> {
   const prompt = args.prompt;
   const options = obj(args, 'options');
-  const images = (Array.isArray(options.images) ? options.images : []).filter(
-    (i): i is string => typeof i === 'string' && /^(data:image\/|https:\/\/)/.test(i),
-  ).slice(0, MAX_IMAGES);
+  const refs = (Array.isArray(options.images) ? options.images : [])
+    .map((i) => (i && typeof i === 'object' && 'path' in i ? String((i as { path: unknown }).path) : String(i)))
+    .filter(Boolean)
+    .slice(0, MAX_IMAGES);
+  // Paths and app file URLs are read on the host; https and data URLs go as is.
+  const images = await Promise.all(refs.map((ref) => (/^(https:\/\/|data:image\/)/.test(ref) ? ref : readMediaAsDataUrl(ctx.app.id, ref))));
   const messages: Array<{ role: 'user' | 'assistant'; content: string }> = Array.isArray(prompt)
     ? (prompt as Array<{ role?: string; content?: unknown }>).map((m) => ({
       role: m.role === 'assistant' ? 'assistant' : 'user',
@@ -72,11 +76,11 @@ export const ai: CapabilityGroup = {
     {
       name: 'ai.chat',
       params: ['prompt', 'options'],
-      signature: "(prompt: string | {role:'user'|'assistant', content}[], { system?, images?: dataUrl[], json?: true | JSONSchema }?) -> string | object",
-      doc: 'images = photos to analyse (data URLs from mapp.camera, max 4). json returns a parsed object. Takes a few seconds: show a loading state.',
+      signature: "(prompt: string | {role:'user'|'assistant', content}[], { system?, images?: (path | url | photo)[], json?: true | JSONSchema }?) -> string | object",
+      doc: 'images: up to 4 files/ paths, app file urls, https or data URLs (a camera result object works too). json returns a parsed object. Takes seconds: show a loading state.',
       run: async (args, ctx) => {
         requireSignedIn();
-        const input = buildInput(args);
+        const input = await buildInput(args, ctx);
         const instructions = instructionsFor(args, ctx);
         const text = await session.withToken((accessToken) => completeText({ accessToken, input, instructions }));
         return obj(args, 'options').json ? parseJsonReply(text) : text;
@@ -85,12 +89,12 @@ export const ai: CapabilityGroup = {
     {
       name: 'ai.stream',
       params: ['prompt', 'options'],
-      signature: '(prompt, { system?, images? }?) -> { id }',
+      signature: '(prompt, { system?, images?: (path | url)[] }?) -> { id }',
       doc: 'Live text for chat-like UIs: listen with mapp.on before calling, match the id.',
       events: ['ai.delta', 'ai.done', 'ai.error'],
       run: async (args, ctx) => {
         requireSignedIn();
-        const input = buildInput(args);
+        const input = await buildInput(args, ctx);
         const instructions = instructionsFor(args, ctx);
         const id = `s${++streamSeq}`;
         const controller = new AbortController();

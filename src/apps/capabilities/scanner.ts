@@ -1,6 +1,7 @@
 import { DocumentScanner, ResponseType, ScanDocumentResponseStatus } from '@capgo/capacitor-document-scanner';
+import { writeMedia } from '../media';
 import type { CapabilityGroup } from './types';
-import { MAX_MEDIA_BYTES, optNum, requireNative, toDataUrl } from './util';
+import { MAX_MEDIA_BYTES, optNum, requireNative } from './util';
 
 export const scanner: CapabilityGroup = {
   group: 'scanner',
@@ -9,8 +10,8 @@ export const scanner: CapabilityGroup = {
   capabilities: [
     {
       name: 'scanner.scan',
-      signature: '({ maxPages?: 1-10, quality?: 1-100 }?) -> { pages: jpeg dataUrl[] }',
-      doc: '[] if cancelled',
+      signature: '({ maxPages?: 1-10, quality?: 1-100 }?) -> { pages: { path, url, mimeType, size }[] }',
+      doc: "JPEG pages saved in the app's files; [] if cancelled.",
       run: async (args, ctx) => {
         requireNative(ctx);
         const result = await DocumentScanner.scanDocument({
@@ -20,9 +21,11 @@ export const scanner: CapabilityGroup = {
           letUserAdjustCrop: true,
         });
         if (result.status === ScanDocumentResponseStatus.Cancel) return { pages: [] };
-        const pages = (result.scannedImages ?? []).map((b64) => toDataUrl(b64, 'image/jpeg'));
-        const total = pages.reduce((sum, p) => sum + p.length * 0.75, 0);
+        const images = (result.scannedImages ?? []).map((b64) => b64.replace(/^data:[^,]*,/, ''));
+        const total = images.reduce((sum, b64) => sum + b64.length * 0.75, 0);
         if (total > MAX_MEDIA_BYTES * 2) throw new Error('Scan too large; use fewer pages or a lower quality');
+        const pages = [];
+        for (const base64 of images) pages.push(await writeMedia(ctx.app.id, { base64, mimeType: 'image/jpeg', name: 'scan' }));
         return { pages };
       },
     },

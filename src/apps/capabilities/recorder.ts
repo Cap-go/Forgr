@@ -1,7 +1,7 @@
-import { Filesystem } from '@capacitor/filesystem';
 import { CapacitorAudioRecorder, RecordingStatus } from '@capgo/capacitor-audio-recorder';
+import { adoptFile, writeMedia } from '../media';
 import type { CapabilityContext, CapabilityGroup } from './types';
-import { blobToDataUrl, ensureGranted, fileToDataUrl, requireNative } from './util';
+import { blobToDataUrl, ensureGranted, requireNative } from './util';
 
 const recording = new WeakSet<CapabilityContext>();
 
@@ -35,24 +35,21 @@ export const recorder: CapabilityGroup = {
     },
     {
       name: 'recorder.stop',
-      signature: "() -> { dataUrl: 'data:audio/mp4;base64,...', durationMs }",
-      doc: 'plays in <audio>; max 8 MB',
+      signature: '() -> { path, url, mimeType, size, durationMs }',
+      doc: "Saved in the app's files (m4a). Play with <audio src=url>; send to transcription with mapp.http.upload(url, { file: path }).",
       run: async (_args, ctx) => {
         requireNative(ctx);
         const result = await CapacitorAudioRecorder.stopRecording();
-        let dataUrl: string;
+        let file;
         if (result.uri) {
-          try {
-            dataUrl = await fileToDataUrl(result.uri, 'audio/mp4');
-          } finally {
-            await Filesystem.deleteFile({ path: result.uri }).catch(() => undefined);
-          }
+          file = await adoptFile(ctx.app.id, result.uri, 'audio/mp4');
         } else if (result.blob) {
-          dataUrl = await blobToDataUrl(result.blob);
+          const dataUrl = await blobToDataUrl(result.blob);
+          file = await writeMedia(ctx.app.id, { base64: dataUrl.replace(/^data:[^,]*,/, ''), mimeType: 'audio/mp4' });
         } else {
           throw new Error('Recording produced no audio');
         }
-        return { dataUrl, durationMs: result.duration ?? null };
+        return { ...file, durationMs: result.duration ?? null };
       },
     },
     {
