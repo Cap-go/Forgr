@@ -15,6 +15,8 @@ import { appStore, type MiniAppMeta } from '../apps/store';
 import { STARTER_APPS } from '../apps/templates';
 import { APP_LINKS, PREF_KEYS } from '../config';
 import { lifecycle } from '../lifecycle';
+import '@capgo/capacitor-sheets';
+import type { CapSheet } from '@capgo/capacitor-sheets';
 import { Activity } from './activity';
 import capgoSvg from '../assets/capgo.svg?raw';
 import { renderMarkdown } from './markdown';
@@ -53,7 +55,7 @@ export class Shell {
   private frame: HTMLIFrameElement | null = null;
   private bridge: AppBridge | null = null;
   private switcher = h('div', { class: 'switcher hidden' });
-  private sheet = h('section', { class: 'chat-sheet hidden' });
+  private sheet = h('cap-sheet-content', { class: 'chat-sheet' });
   private bubble = h('button', { class: 'bubble hidden', 'aria-label': 'Open Mapp chat' }, icon('sparkles'));
   private modalLayer = h('div', { class: 'modal-layer hidden' });
   private toastEl = h('div', { class: 'toast hidden' });
@@ -80,7 +82,7 @@ export class Shell {
 
   async init(): Promise<void> {
     this.measureSafeArea();
-    this.root.append(this.home, this.stage, this.switcher, this.bubble, this.sheet, this.modalLayer, this.toastEl);
+    this.root.append(this.home, this.stage, this.switcher, this.bubble, this.buildChatSheet(), this.modalLayer, this.toastEl);
     this.buildSheet();
     this.setupBubble();
     new PinchDetector(document, (dir) => {
@@ -96,6 +98,8 @@ export class Shell {
     });
     session.onChange(() => this.renderHome());
     this.renderHome();
+    // The "New app" chat starts with its suggestions, even before any conversation exists.
+    await this.loadConversation(HOME_CHAT);
 
     // Tell the open mini app when Mapp leaves or returns to the screen.
     lifecycle.onChange((active) => {
@@ -116,7 +120,7 @@ export class Shell {
       void CapApp.getLaunchUrl().then((launch) => launch?.url && this.handleLink(launch.url)).catch(() => undefined);
       void CapApp.addListener('backButton', () => {
         if (!this.switcher.classList.contains('hidden')) this.closeSwitcher();
-        else if (!this.sheet.classList.contains('hidden')) this.collapseSheet();
+        else if (this.sheetOpen) this.collapseSheet();
         else if (this.currentAppId) this.openSwitcher();
       });
     }
@@ -239,16 +243,15 @@ export class Shell {
   async openApp(id: string): Promise<void> {
     const app = appStore.require(id);
     this.closeSwitcher(true);
-    // Each app keeps its own conversation in its folder: show it when the app opens.
-    if (!this.running && this.conversation.key !== id) {
-      await this.loadConversation(id);
-    }
+
     if (this.running && this.conversation.key === HOME_CHAT) {
       // A new app was created from home: the conversation now belongs to it.
       this.conversation.key = id;
       await appStore.writeChat(HOME_CHAT, []);
     }
     this.currentAppId = id;
+    // Each app keeps its own conversation in its folder: show it when the app opens.
+    if (!this.running && this.conversation.key !== id) await this.loadConversation(id);
     this.mountFrame(app, await appStore.readHtml(id));
     this.home.classList.add('hidden');
     this.stage.classList.remove('hidden');
@@ -467,14 +470,8 @@ export class Shell {
         this.toast('Reverted the last change');
       }
     });
-    const grabber = h('div', { class: 'grabber' });
-    let startY = 0;
-    grabber.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; }, { passive: true });
-    grabber.addEventListener('touchend', (e) => {
-      if (e.changedTouches[0].clientY - startY > 50) this.collapseSheet();
-    });
     this.sheet.append(
-      grabber,
+      document.createElement('cap-sheet-handle'),
       h('header', { class: 'sheet-head' },
         h('div', { class: 'head-side' }, this.newChatBtn, this.undoBtn),
         this.sheetTitle,
@@ -532,8 +529,9 @@ export class Shell {
     this.editing = appId !== null;
     const key = appId ?? HOME_CHAT;
     if (this.conversation.key !== key && !this.running) void this.loadConversation(key);
-    this.sheet.classList.remove('hidden');
     this.sheet.classList.toggle('full', !appId);
+    this.sheetOpen = true;
+    if (!this.chatSheet.presented) this.chatSheet.present();
     this.updateChrome();
     if (prompt) {
       this.input.value = prompt;
@@ -560,8 +558,42 @@ export class Shell {
 
   private collapseSheet(): void {
     this.input.blur();
-    this.sheet.classList.add('hidden');
+    this.sheetOpen = false;
+    if (this.chatSheet.presented) this.chatSheet.dismiss();
     this.updateChrome();
+  }
+
+  private sheetOpen = false;
+  private chatSheet = document.createElement('cap-sheet') as CapSheet;
+
+  /**
+   * The chat lives in a Capgo Sheets bottom sheet: drag the handle down to
+   * hide it. It is not modal, so the app above stays usable while editing.
+   */
+  private buildChatSheet(): HTMLElement {
+    const sheet = this.chatSheet;
+    sheet.setAttribute('content-placement', 'bottom');
+    sheet.setAttribute('inert-outside', 'false');
+    sheet.setAttribute('close-on-outside-click', 'false');
+    sheet.setAttribute('focus-trap', 'false');
+    sheet.setAttribute('safe-area', 'none');
+    const view = document.createElement('cap-sheet-view');
+    view.classList.add('chat-view');
+    const content = this.sheet;
+    view.append(content);
+    const portal = document.createElement('cap-sheet-portal');
+    portal.append(view);
+    sheet.append(portal);
+    sheet.addEventListener('cap-sheet-presented-change', (event) => {
+      const { presented, source } = (event as CustomEvent<{ presented: boolean; source: string }>).detail;
+      if (!presented && source !== 'programmatic') {
+        // Swiped down: same as tapping Hide.
+        this.sheetOpen = false;
+        this.input.blur();
+        this.updateChrome();
+      }
+    });
+    return sheet;
   }
 
   private finishEditing(): void {
@@ -573,7 +605,7 @@ export class Shell {
     const app = this.currentAppId ? appStore.get(this.currentAppId) : undefined;
     this.sheetTitle.replaceChildren(app ? app.name : 'New App');
     this.undoBtn.classList.toggle('hidden', !app);
-    const sheetOpen = !this.sheet.classList.contains('hidden');
+    const sheetOpen = this.sheetOpen;
     this.bubble.classList.toggle('hidden', !(app && this.editing && !sheetOpen));
     this.bubble.classList.toggle('busy', this.running !== null);
     this.stage.classList.toggle('with-sheet', Boolean(app) && sheetOpen);
@@ -918,14 +950,44 @@ export class Shell {
 
   // ---------------------------------------------------------------- modals
 
+  /**
+   * Modal sheets use Capgo Sheets: drag down (or tap outside) to dismiss,
+   * safe areas and keyboard handled by the library.
+   */
   private showModal(build: (close: () => void) => Array<Node | null>, variant: 'sheet' | 'action' = 'sheet'): void {
-    const close = () => {
-      this.modalLayer.classList.add('hidden');
-      this.modalLayer.replaceChildren();
-    };
-    const card = h('div', { class: `modal ${variant}`, role: 'dialog', 'aria-modal': 'true' }, ...build(close));
-    this.modalLayer.replaceChildren(h('div', { class: 'modal-backdrop', onclick: close }), card);
+    this.modalLayer.replaceChildren();
+    const sheet = document.createElement('cap-sheet') as CapSheet;
+    sheet.setAttribute('content-placement', 'bottom');
+    if (variant === 'action') {
+      sheet.setAttribute('detached', '');
+      sheet.setAttribute('bottom-inset', '0.5em');
+    }
+    const close = () => sheet.dismiss();
+    const content = document.createElement('cap-sheet-content');
+    content.className = `modal ${variant}`;
+    content.setAttribute('role', 'dialog');
+    content.setAttribute('aria-modal', 'true');
+    if (variant === 'sheet') content.append(document.createElement('cap-sheet-handle'));
+    content.append(...build(close).filter((n): n is Node => n !== null));
+    const view = document.createElement('cap-sheet-view');
+    view.append(document.createElement('cap-sheet-backdrop'), content);
+    const portal = document.createElement('cap-sheet-portal');
+    portal.append(view);
+    sheet.append(portal);
+    sheet.addEventListener('cap-sheet-presented-change', (event) => {
+      if ((event as CustomEvent<{ presented: boolean }>).detail.presented) return;
+      // Let the dismiss animation finish before removing it.
+      window.setTimeout(() => {
+        if (this.modalLayer.contains(sheet)) {
+          this.modalLayer.replaceChildren();
+          this.modalLayer.classList.add('hidden');
+        }
+        portal.remove();
+      }, 400);
+    });
+    this.modalLayer.append(sheet);
     this.modalLayer.classList.remove('hidden');
+    requestAnimationFrame(() => sheet.present());
   }
 
   private showSignIn(): void {

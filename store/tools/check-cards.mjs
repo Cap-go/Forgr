@@ -1,0 +1,20 @@
+// Checks the question and secret cards in demo mode (bun run dev on BASE).
+import { chromium } from 'playwright';
+const base = process.env.BASE ?? 'http://localhost:5181';
+const b = await chromium.launch();
+const p = await (await b.newContext({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, colorScheme: 'dark' })).newPage();
+p.on('pageerror', (e) => console.log('PAGEERROR', e.message));
+await p.goto(`${base}/?demo=1`);
+await p.waitForSelector('.grid .app-icon');
+await p.locator('.composer-pill').click();
+await p.locator('.composer textarea').fill('A Stripe dashboard for my revenue');
+await p.locator('.send').click();
+await p.locator('.question-card').waitFor();
+await p.locator('.card-option', { hasText: 'Last 7 days' }).click();
+await p.locator('.secret-card').waitFor();
+await p.locator('.secret-card input[type=password]').fill('sk_test_1234567890abcdef');
+await p.locator('.card-primary').click();
+await p.locator('.activity.finished').waitFor({ timeout: 20000 });
+const chat = await p.evaluate(() => document.querySelector('.messages').innerText);
+console.log('cards ok, key leaked into chat:', chat.includes('sk_test_1234567890abcdef'));
+await b.close();
