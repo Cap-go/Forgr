@@ -53,30 +53,38 @@ export async function createResponseStream(req: ResponseRequest): Promise<AsyncI
     store: false,
   });
 
-  if (Capacitor.isNativePlatform()) {
-    // The WebView turns some errors (no CORS headers on admission failures)
-    // into an opaque "Load failed". Native HTTP returns the real status and
-    // body; the SSE text is buffered and parsed once complete.
-    const res = await httpRequest(RESPONSES_API_URL, 'POST', req.accessToken, body);
-    if (res.status < 200 || res.status >= 300) {
-      throw new Error(formatApiError(res.status, res.text));
-    }
-    const stream = new Response(res.text).body;
+  // Stream through the WebView so text and tool progress arrive live and the
+  // connection is never idle. WKWebView hides failed responses without CORS
+  // headers as an opaque network error: replay those natively to read the
+  // real status and message.
+  let res: Response;
+  try {
+    res = await fetch(RESPONSES_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${req.accessToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+      },
+      body,
+    });
+  } catch (error) {
+    if (!Capacitor.isNativePlatform()) throw error;
+    const native = await httpRequest(RESPONSES_API_URL, 'POST', req.accessToken, body);
+    if (native.status < 200 || native.status >= 300) throw new Error(formatApiError(native.status, native.text));
+    const stream = new Response(native.text).body;
     if (!stream) throw new Error('ChatGPT returned an empty response');
     return parseSseStream(stream);
   }
-
-  const res = await fetch(RESPONSES_API_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${req.accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body,
-  });
   if (!res.ok) throw new Error(formatApiError(res.status, await res.text()));
   if (!res.body) throw new Error('ChatGPT returned an empty response');
   return parseSseStream(res.body);
+}
+
+/** Dropped connections and timeouts worth retrying automatically. */
+export function isTransientError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /network connection was lost|load failed|failed to fetch|timed out|timeout|ECONNRESET|socket|stream ended before completion|\((500|502|503|504)\)/i.test(message);
 }
 
 /** Single completion without tools, used by mini apps through mapp.ai.chat. */
@@ -154,6 +162,7 @@ async function* parseSseStream(body: ReadableStream<Uint8Array>): AsyncIterable<
           if (item) {
             item.arguments = type.endsWith('.done') ? event.arguments :
               String(item.arguments ?? '') + String(event.delta ?? '');
+            yield { type: 'tool_progress', name: String(item.name ?? ''), chars: String(item.arguments ?? '').length };
           }
         }
         if (type === 'error' || type === 'response.failed' || type === 'response.incomplete') {

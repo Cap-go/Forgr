@@ -1,5 +1,13 @@
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
-import type { ChatMessage } from '../ai/types';
+import type { ChatMessage, ConversationItem } from '../ai/types';
+
+/** An agent run saved after each step so it can continue after iOS suspends or kills Mapp. */
+export interface PendingJob {
+  prompt: string;
+  input: ConversationItem[];
+  answer: string;
+  savedAt: number;
+}
 
 export interface MiniAppMeta {
   id: string;
@@ -173,6 +181,19 @@ class AppStore {
   async readChat(key: string): Promise<ChatMessage[]> {
     const raw = await readText(`${ROOT}/chats/${key}.json`);
     return raw ? (JSON.parse(raw) as ChatMessage[]) : [];
+  }
+
+  async readJob(key: string): Promise<PendingJob | null> {
+    const raw = await readText(`${ROOT}/jobs/${key}.json`);
+    return raw ? (JSON.parse(raw) as PendingJob) : null;
+  }
+
+  async writeJob(key: string, job: PendingJob): Promise<void> {
+    await writeText(`${ROOT}/jobs/${key}.json`, JSON.stringify(job));
+  }
+
+  async clearJob(key: string): Promise<void> {
+    await remove(`${ROOT}/jobs/${key}.json`);
   }
 
   async writeChat(key: string, messages: ChatMessage[]): Promise<void> {

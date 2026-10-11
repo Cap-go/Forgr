@@ -1,4 +1,4 @@
-/* Mapp shell: calm, monochrome, iOS-native. One accent, used sparingly. */
+/* Mapp shell: monochrome like ChatGPT/Grok. Color only when it carries meaning (app icons, destructive). */
 
 :root {
   color-scheme: light dark;
@@ -17,8 +17,10 @@
   --tertiary: rgba(60, 60, 67, 0.3);
   --separator: rgba(60, 60, 67, 0.29);
   --material: rgba(249, 249, 249, 0.82);
-  --accent: #6e56f7;
-  --accent-text: #6e56f7;
+  --accent: #0d0d0d;
+  --on-accent: #fff;
+  --accent-text: var(--label);
+  --bubble: #f0f0f2;
   --danger: #ff3b30;
   --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   --safe-top: env(safe-area-inset-top);
@@ -46,7 +48,11 @@
     --tertiary: rgba(235, 235, 245, 0.3);
     --separator: rgba(84, 84, 88, 0.6);
     --material: rgba(22, 22, 24, 0.78);
-    --accent-text: #9d8cff;
+    --accent: #fff;
+    --on-accent: #000;
+    --bubble: #2a2a2c;
+    --sheet: #121212;
+    --sheet-row: #1f1f21;
     --danger: #ff453a;
     --shadow: none;
   }
@@ -197,7 +203,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 }
 .switch-btn .icon { width: 22px; height: 22px; }
 .switch-btn:active { background: rgba(255, 255, 255, 0.24); }
-.switch-btn.accent { background: var(--accent); }
+.switch-btn.accent { background: #fff; color: #000; }
 .switch-label { color: rgba(235, 235, 245, 0.6); font-size: 13px; margin: 20px 4px 8px; }
 .switch-strip { display: flex; gap: 12px; overflow-x: auto; padding: 4px 0 2px; margin-top: 16px; scrollbar-width: none; }
 .switch-label + .switch-strip { margin-top: 0; }
@@ -237,7 +243,8 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   animation: rise 0.32s var(--ease);
   -webkit-user-select: text; user-select: text;
 }
-.chat-sheet.full { top: calc(var(--safe-top) + 10px); height: auto; }
+.chat-sheet.full { top: calc(var(--safe-top) + 10px); height: auto; background: var(--bg); }
+.chat-sheet.full .sheet-head { border-bottom: none; }
 .grabber { height: 18px; display: grid; place-items: center; flex: none; }
 .grabber::before { content: ''; width: 36px; height: 5px; border-radius: 3px; background: var(--tertiary); }
 
@@ -270,11 +277,18 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 }
 .msg.user {
   align-self: flex-end; max-width: 80%;
-  padding: 8px 14px; border-radius: 18px;
-  background: var(--accent); color: #fff;
+  padding: 10px 16px; border-radius: 20px;
+  background: var(--bubble); color: var(--label);
 }
 .msg.assistant { align-self: flex-start; color: var(--label); padding: 0 2px; }
-.msg.error { color: var(--danger); }
+.msg.note { color: var(--secondary); font-size: 15px; }
+.error-block { align-self: stretch; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 2px 2px 0; }
+.error-block p { margin: 0; color: var(--secondary); font-size: 15px; line-height: 1.4; }
+.retry {
+  display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 17px;
+  background: var(--fill); color: var(--label); font-size: 15px; font-weight: 500;
+}
+.retry .icon { width: 15px; height: 15px; }
 .msg.streaming::after { content: '▍'; color: var(--tertiary); animation: blink 1s steps(2) infinite; }
 
 .status { align-self: flex-start; display: flex; align-items: center; gap: 8px; color: var(--secondary); font-size: 15px; padding: 0 2px; }
@@ -310,7 +324,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .send {
   width: 44px; height: 44px; padding: 5px; border-radius: 50%; flex: none;
   display: grid; place-items: center;
-  background: var(--accent); background-clip: content-box; color: #fff;
+  background: var(--accent); background-clip: content-box; color: var(--on-accent);
   transition: background-color 0.15s;
 }
 .send .icon { width: 20px; height: 20px; stroke-width: 2.4; }
@@ -403,7 +417,7 @@ button.row:active { background: var(--highlight); }
   transition: opacity 0.15s;
 }
 .btn:active { opacity: 0.7; }
-.btn.primary { background: var(--accent); color: #fff; }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
 .btn.mono { background: var(--label); color: var(--bg); }
 .btn.plain { color: var(--accent-text); font-weight: 400; height: 44px; }
 .btn[disabled] { opacity: 0.5; }
@@ -493,7 +507,7 @@ button.row:active { background: var(--highlight); }
 .pinch-demo .f3 { --dx: 62px; --dy: 40px; }
 .practice-done {
   position: absolute; width: 88px; height: 88px; border-radius: 50%;
-  display: grid; place-items: center; color: #fff; background: var(--accent);
+  display: grid; place-items: center; color: var(--on-accent); background: var(--accent);
   opacity: 0; transform: scale(0.4); transition: all 0.35s var(--ease);
 }
 .practice-done .icon { width: 44px; height: 44px; stroke-width: 2.4; }
@@ -512,13 +526,13 @@ button.row:active { background: var(--highlight); }
   background: var(--fill); color: var(--label); font-size: 12px; font-weight: 500;
 }
 .pill .icon { width: 20px; height: 20px; }
-.pill.accent { background: var(--accent); color: #fff; }
+.pill.accent { background: var(--accent); color: var(--on-accent); }
 .mock-tiles { display: flex; gap: 14px; }
 .mock-tile { width: 44px; height: 44px; border-radius: 10px; background: var(--fill); }
 
 /* private */
 .art-private { display: flex; flex-direction: column; align-items: center; gap: 24px; }
-.lock-badge { width: 72px; height: 72px; border-radius: 18px; display: grid; place-items: center; color: #fff; background: var(--accent); }
+.lock-badge { width: 72px; height: 72px; border-radius: 18px; display: grid; place-items: center; color: var(--on-accent); background: var(--accent); }
 .lock-badge .icon { width: 34px; height: 34px; }
 .facts { list-style: none; margin: 0; padding: 0; width: 100%; background: var(--surface); border-radius: 12px; overflow: hidden; }
 .facts li { position: relative; display: flex; gap: 12px; align-items: center; padding: 12px 16px; font-size: 15px; }

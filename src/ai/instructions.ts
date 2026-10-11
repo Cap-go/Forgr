@@ -10,6 +10,7 @@ const PLATFORM = `# How a Mapp app runs (hard limits, never work around them)
 - env(safe-area-inset-*) is 0 in the iframe. The host provides --safe-top/--safe-right/--safe-bottom/--safe-left (px, kept live) and the Mapp kit applies them for you (see Design kit). Never place content under the status bar or the home indicator.
 - The keyboard resizes the viewport: use 100dvh (not 100vh), keep bottom bars position: fixed with bottom padding var(--safe-bottom), and scroll focused inputs into view.
 - No "Home", "Back to Mapp" or "Exit" buttons: the user pinches with three fingers to leave. Never use alert/confirm/prompt for normal flows: use the kit sheet or inline UI.
+- Background and lock screen: iOS freezes the app when the user switches away or locks the phone (JS timers stop, sensors and audio stop). mapp.on('app.pause', fn) fires before that and mapp.on('app.resume', fn) after: save state on pause, refresh on resume. Never count time with setInterval ticks: store start timestamps and compute from Date.now() so timers stay correct after the phone was locked; schedule a mapp.notifications alert for anything that must fire while the app is closed.
 - Data: persist with mapp.storage (JSON values, per app). Load on start, save on every change, keep key names stable across edits so the user's data survives. Show real empty states; never invent sample data unless asked.`;
 
 const RULES = `# Native capabilities: the COMPLETE list

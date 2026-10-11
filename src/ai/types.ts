@@ -27,4 +27,6 @@ export interface ParsedTurn {
 
 export type StreamEvent =
   | { type: 'text_delta'; delta: string }
+  /** A tool call is being written: name and how many argument chars so far. */
+  | { type: 'tool_progress'; name: string; chars: number }
   | { type: 'completed'; parsed: ParsedTurn };

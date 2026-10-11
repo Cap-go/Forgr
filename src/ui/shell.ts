@@ -14,6 +14,7 @@ import { cloud, memberName } from '../cloud/client';
 import { appStore, type MiniAppMeta } from '../apps/store';
 import { STARTER_APPS } from '../apps/templates';
 import { APP_LINKS, PREF_KEYS } from '../config';
+import { lifecycle } from '../lifecycle';
 import { PinchDetector } from './gesture';
 import { showOnboarding } from './onboarding';
 import { h, icon } from './dom';
@@ -84,6 +85,11 @@ export class Shell {
     });
     session.onChange(() => this.renderHome());
     this.renderHome();
+
+    // Tell the open mini app when Mapp leaves or returns to the screen.
+    lifecycle.onChange((active) => {
+      this.frame?.contentWindow?.postMessage({ __mapp: 'event', name: active ? 'app.resume' : 'app.pause', payload: { at: Date.now() } }, '*');
+    });
 
     if (Capacitor.isNativePlatform()) {
       void CapacitorUpdater.notifyAppReady().catch(() => undefined);
@@ -502,6 +508,16 @@ export class Shell {
     const messages = await appStore.readChat(key);
     this.conversation = { key, messages };
     this.renderMessages();
+    const job = this.running ? null : await appStore.readJob(key);
+    if (job && this.conversation.key === key) this.showInterrupted(job.prompt);
+  }
+
+  /** A run stopped by iOS (app killed or suspended too long): offer to continue it. */
+  private showInterrupted(prompt: string): void {
+    this.messagesEl.append(h('div', { class: 'error-block' },
+      h('p', {}, 'This request was interrupted when Mapp left the screen.'),
+      h('button', { class: 'retry', onclick: () => { if (!this.running) void this.run(prompt, true); } }, icon('undo'), 'Continue')));
+    this.scrollMessages();
   }
 
   private renderMessages(): void {
@@ -551,11 +567,23 @@ export class Shell {
     void this.run(text);
   }
 
-  private async run(text: string): Promise<void> {
+  private async run(text: string, retry = false): Promise<void> {
     const conversation = this.conversation;
     if (!conversation.messages.length) this.messagesEl.replaceChildren();
-    conversation.messages.push({ role: 'user', content: text });
-    this.messagesEl.append(this.bubbleFor('user', text));
+    // Continue from the last finished step when an earlier run was interrupted.
+    const saved = retry ? await appStore.readJob(conversation.key) : null;
+    const job = { prompt: text, key: conversation.key };
+    if (retry) {
+      // Drop the failed answer; the user message stays as the prompt.
+      if (conversation.messages.at(-1)?.role === 'assistant') conversation.messages.pop();
+      this.messagesEl.querySelector('.error-block:last-of-type')?.remove();
+    } else {
+      conversation.messages.push({ role: 'user', content: text });
+      this.messagesEl.append(this.bubbleFor('user', text));
+      // Saved now so the request survives iOS killing Mapp mid-run.
+      await appStore.writeChat(conversation.key, conversation.messages);
+      await appStore.writeJob(conversation.key, { prompt: text, input: [], answer: '', savedAt: Date.now() });
+    }
     const status = h('div', { class: 'status' }, h('span', { class: 'dots', 'aria-hidden': 'true' }), 'Thinking…');
     let reply = h('div', { class: 'msg assistant streaming' });
     this.messagesEl.append(status);
@@ -597,12 +625,31 @@ export class Shell {
             }
             this.scrollMessages();
           },
-          onToolEnd: (name, ok) => {
-            if (!ok && name !== 'read_skill') status.classList.add('warn');
+          onToolProgress: (name, chars) => {
+            const what = name === 'create_app' || name === 'write_app' ? 'Writing the app' : name === 'edit_app' ? 'Writing changes' : name === 'deploy_function' ? 'Writing the function' : 'Preparing';
+            status.replaceChildren(h('span', { class: 'dots', 'aria-hidden': 'true' }), `${what}… ${chars > 1024 ? `${(chars / 1024).toFixed(1)} KB` : ''}`);
           },
+          onPaused: () => {
+            status.replaceChildren(h('span', { class: 'dots', 'aria-hidden': 'true' }), 'Paused while Mapp is in the background');
+          },
+          onCheckpoint: (input, answer) => {
+            if (job.key !== conversation.key) {
+              void appStore.clearJob(job.key);
+              job.key = conversation.key;
+            }
+            void appStore.writeJob(job.key, { prompt: job.prompt, input, answer, savedAt: Date.now() });
+          },
+          onRetry: () => {
+            reply.remove();
+            reply = h('div', { class: 'msg assistant streaming' });
+            status.replaceChildren(h('span', { class: 'dots', 'aria-hidden': 'true' }), 'Connection dropped, retrying…');
+          },
+          onToolEnd: () => undefined,
         },
         controller.signal,
+        saved?.input.length ? { input: saved.input, answer: saved.answer } : undefined,
       );
+      void appStore.clearJob(job.key);
       conversation.messages.push({ role: 'assistant', content: answer || 'Done.' });
       if (!this.messagesEl.querySelector('.msg.assistant') && answer) {
         this.messagesEl.insertBefore(this.bubbleFor('assistant', answer), status);
@@ -611,7 +658,14 @@ export class Shell {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       conversation.messages.push({ role: 'assistant', content: message === 'Stopped' ? 'Stopped.' : `Error: ${message}` });
-      this.messagesEl.insertBefore(h('div', { class: 'msg assistant error' }, message === 'Stopped' ? 'Stopped.' : message), status);
+      if (message === 'Stopped') {
+        void appStore.clearJob(job.key);
+        this.messagesEl.insertBefore(h('div', { class: 'msg assistant note' }, 'Stopped.'), status);
+      } else {
+        this.messagesEl.insertBefore(h('div', { class: 'error-block' },
+          h('p', {}, friendlyError(message)),
+          h('button', { class: 'retry', onclick: () => { if (!this.running) void this.run(text, true); } }, icon('undo'), 'Try again')), status);
+      }
     } finally {
       reply.classList.remove('streaming');
       status.remove();
@@ -752,4 +806,11 @@ function toolLabel(name: string, args: Record<string, unknown>): string {
     case 'list_skills': return 'Checking Capgo skills…';
     default: return 'Working…';
   }
+}
+
+function friendlyError(message: string): string {
+  if (/network connection was lost|load failed|failed to fetch|offline/i.test(message)) return 'The connection dropped before the answer finished.';
+  if (/usage limit/i.test(message)) return message;
+  if (/sign in/i.test(message)) return 'Your ChatGPT session expired. Sign in again from Settings.';
+  return message.length > 220 ? `${message.slice(0, 220)}…` : message;
 }
