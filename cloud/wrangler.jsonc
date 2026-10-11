@@ -8,11 +8,13 @@
   "durable_objects": {
     "bindings": [
       { "name": "USER", "class_name": "UserSpace" },
-      { "name": "SPACE", "class_name": "SharedSpace" }
+      { "name": "SPACE", "class_name": "SharedSpace" },
+      { "name": "DIAG", "class_name": "Diagnostics" }
     ]
   },
   "migrations": [
-    { "tag": "v1", "new_sqlite_classes": ["UserSpace", "SharedSpace"] }
+    { "tag": "v1", "new_sqlite_classes": ["UserSpace", "SharedSpace"] },
+    { "tag": "v2", "new_sqlite_classes": ["Diagnostics"] }
   ],
   "vars": {
     "OPENAI_ISSUER": "https://auth.openai.com",

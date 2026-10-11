@@ -3,7 +3,7 @@ import { HttpError, type DocOp } from './docs';
 import { invokeFunction, validateFunction, versionOf } from './functions';
 import type { Env, RpcResult } from './objects';
 
-export { SharedSpace, UserSpace } from './objects';
+export { Diagnostics, SharedSpace, UserSpace } from './objects';
 export { UserBinding } from './functions';
 
 const CORS = {
@@ -53,6 +53,20 @@ export default {
     try {
       if (path === '/' || path === '/health') return json({ ok: true, service: 'mapp-cloud' });
       if (path.startsWith('/join/')) return joinPage(env, decodeURIComponent(path.slice(6)));
+
+      if (path === '/v1/diag') {
+        const diag = env.DIAG.get(env.DIAG.idFromName('global'));
+        if (request.method === 'POST') {
+          const text = await request.text();
+          if (text.length > 32_000) return fail(413, 'Report too large');
+          await diag.add(text);
+          return json({ result: true });
+        }
+        if (request.method === 'GET' && env.DIAG_KEY && url.searchParams.get('key') === env.DIAG_KEY) {
+          return json({ result: await diag.list(Math.min(Number(url.searchParams.get('limit') ?? 20), 200)) });
+        }
+        return fail(404, 'Not found');
+      }
 
       // Public URL of a user function: /u/<userId>/<name>/...
       const pub = path.match(/^\/u\/([a-f0-9]{24})\/([a-z0-9-]{1,40})(\/.*)?$/);

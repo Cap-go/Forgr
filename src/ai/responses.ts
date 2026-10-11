@@ -60,8 +60,36 @@ export async function createResponseStream(req: ResponseRequest): Promise<AsyncI
   }
 }
 
+/** Metadata about one model request (no prompt or reply text), for diagnostics. */
+export interface RequestDiag {
+  model: string;
+  path: 'stream' | 'buffered';
+  status?: number;
+  startedAt: number;
+  ms?: number;
+  fetchError?: string;
+  error?: string;
+  events: Record<string, number>;
+  outputTypes: string[];
+  textChars: number;
+  toolCalls: string[];
+  bytes: number;
+}
+
+let requestLog: RequestDiag[] = [];
+
+/** Returns and clears the requests recorded since the last call. */
+export function takeRequestLog(): RequestDiag[] {
+  const log = requestLog;
+  requestLog = [];
+  return log;
+}
+
 async function openStream(req: ResponseRequest): Promise<AsyncIterable<StreamEvent>> {
   const model = await resolveModel(req.accessToken);
+  const diag: RequestDiag = { model, path: 'stream', startedAt: Date.now(), events: {}, outputTypes: [], textChars: 0, toolCalls: [], bytes: 0 };
+  requestLog.push(diag);
+  if (requestLog.length > 40) requestLog.shift();
   const body = JSON.stringify({
     model,
     input: req.input,
@@ -90,16 +118,28 @@ async function openStream(req: ResponseRequest): Promise<AsyncIterable<StreamEve
     });
   } catch (error) {
     if (req.signal?.aborted) throw new Error('Stopped');
+    diag.fetchError = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
     if (!Capacitor.isNativePlatform()) throw error;
+    diag.path = 'buffered';
     const native = await httpRequest(RESPONSES_API_URL, 'POST', req.accessToken, body);
-    if (native.status < 200 || native.status >= 300) throw new Error(formatApiError(native.status, native.text));
+    diag.status = native.status;
+    diag.bytes = native.text.length;
+    if (native.status < 200 || native.status >= 300) {
+      diag.error = native.text.slice(0, 300);
+      throw new Error(formatApiError(native.status, native.text));
+    }
     const stream = new Response(native.text).body;
     if (!stream) throw new Error('ChatGPT returned an empty response');
-    return parseSseStream(stream, true);
+    return parseSseStream(stream, true, diag);
   }
-  if (!res.ok) throw new Error(formatApiError(res.status, await res.text()));
+  diag.status = res.status;
+  if (!res.ok) {
+    const text = await res.text();
+    diag.error = text.slice(0, 300);
+    throw new Error(formatApiError(res.status, text));
+  }
   if (!res.body) throw new Error('ChatGPT returned an empty response');
-  return parseSseStream(res.body);
+  return parseSseStream(res.body, false, diag);
 }
 
 /** Dropped connections and timeouts worth retrying automatically. */
@@ -142,8 +182,19 @@ async function httpRequest(
   return { status: res.status, text: await res.text() };
 }
 
-async function* parseSseStream(body: ReadableStream<Uint8Array>, buffered = false): AsyncIterable<StreamEvent> {
+async function* parseSseStream(body: ReadableStream<Uint8Array>, buffered = false, diag?: RequestDiag): AsyncIterable<StreamEvent> {
   yield { type: 'connected', buffered };
+  try {
+    yield* parseEvents(body, diag);
+  } catch (error) {
+    if (diag) diag.error = error instanceof Error ? error.message.slice(0, 300) : String(error);
+    throw error;
+  } finally {
+    if (diag) diag.ms = Date.now() - diag.startedAt;
+  }
+}
+
+async function* parseEvents(body: ReadableStream<Uint8Array>, diag?: RequestDiag): AsyncIterable<StreamEvent> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
@@ -154,6 +205,7 @@ async function* parseSseStream(body: ReadableStream<Uint8Array>, buffered = fals
   try {
     while (true) {
       const { done, value } = await reader.read();
+      if (diag && value) diag.bytes += value.length;
       buffer += done ? decoder.decode() : decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
       buffer = lines.pop() ?? '';
@@ -166,6 +218,7 @@ async function* parseSseStream(body: ReadableStream<Uint8Array>, buffered = fals
         if (!payload || payload === '[DONE]') continue;
         const event = JSON.parse(payload) as Record<string, unknown>;
         const type = event.type;
+        if (diag) diag.events[String(type)] = (diag.events[String(type)] ?? 0) + 1;
         const response = event.response as Record<string, unknown> | undefined;
         if (response?.id) responseId = String(response.id);
 
@@ -208,6 +261,12 @@ async function* parseSseStream(body: ReadableStream<Uint8Array>, buffered = fals
               .sort(([a], [b]) => a - b).map(([, item]) => item),
           });
           if (!parsed.assistantText) parsed.assistantText = assistantText;
+          if (diag) {
+            const out = (response?.output ?? [...outputItems.values()]) as Array<Record<string, unknown>>;
+            diag.outputTypes = out.map((o) => String(o.type) + (o.namespace ? `:${String(o.namespace)}` : ''));
+            diag.textChars = parsed.assistantText.length;
+            diag.toolCalls = parsed.toolCalls.map((c) => c.name);
+          }
           yield { type: 'completed', parsed };
           return;
         }

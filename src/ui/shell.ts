@@ -16,6 +16,8 @@ import { STARTER_APPS } from '../apps/templates';
 import { APP_LINKS, PREF_KEYS } from '../config';
 import { lifecycle } from '../lifecycle';
 import { Activity } from './activity';
+import { takeRequestLog } from '../ai/responses';
+import { reportRun } from '../diag';
 import { PinchDetector } from './gesture';
 import { parseLink, type LinkAction } from '../links';
 import { showOnboarding } from './onboarding';
@@ -95,6 +97,10 @@ export class Shell {
     });
 
     if (Capacitor.isNativePlatform()) {
+      // A live update finished downloading: offer to restart into it now.
+      void CapacitorUpdater.addListener('downloadComplete', ({ bundle }) => {
+        this.showUpdateReady(bundle.id, bundle.version);
+      });
       void CapacitorUpdater.notifyAppReady().catch(() => undefined);
       void LocalNotifications.addListener('localNotificationActionPerformed', (event) => {
         const appId = (event.notification.extra as { appId?: string } | undefined)?.appId;
@@ -644,6 +650,12 @@ export class Shell {
       }
     }
     const activity = new Activity();
+    takeRequestLog();
+    const runStartedAt = Date.now();
+    let outcome: 'ok' | 'empty' | 'error' | 'stopped' = 'error';
+    let errorText: string | undefined;
+    let answerChars = 0;
+    let toolsRan = 0;
     // Answers and errors go right after the timeline, like ChatGPT's thought block.
     const status = h('div', { class: 'status-anchor' });
     let ok = false;
@@ -720,13 +732,24 @@ export class Shell {
             reply = h('div', { class: 'msg assistant streaming' });
             activity.step('Connection dropped, retrying');
           },
-          onToolEnd: () => undefined,
+          onToolEnd: () => { toolsRan++; },
         },
         controller.signal,
         saved?.input.length ? { input: saved.input, answer: saved.answer } : undefined,
       );
       void appStore.clearJob(job.key);
       ok = true;
+      answerChars = answer.length;
+      outcome = answer.trim() || toolsRan ? 'ok' : 'empty';
+      if (outcome === 'empty') {
+        // ChatGPT ended without text or any app change: say so instead of silently stopping.
+        conversation.messages.push({ role: 'assistant', content: 'Error: ChatGPT finished without replying.' });
+        this.messagesEl.insertBefore(h('div', { class: 'error-block' },
+          h('p', {}, 'ChatGPT finished without replying. This was reported so we can fix it.'),
+          h('button', { class: 'retry', onclick: () => { if (!this.running) void this.run(text, true, fromLink); } }, icon('undo'), 'Try again')), status);
+        haptic(ImpactStyle.Medium);
+        return;
+      }
       conversation.messages.push({ role: 'assistant', content: answer || 'Done.' });
       if (!this.messagesEl.querySelector('.msg.assistant') && answer) {
         this.messagesEl.insertBefore(this.bubbleFor('assistant', answer), status);
@@ -734,6 +757,8 @@ export class Shell {
       haptic(ImpactStyle.Medium);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      outcome = message === 'Stopped' ? 'stopped' : 'error';
+      errorText = message.slice(0, 500);
       conversation.messages.push({ role: 'assistant', content: message === 'Stopped' ? 'Stopped.' : `Error: ${message}` });
       if (message === 'Stopped') {
         void appStore.clearJob(job.key);
@@ -746,6 +771,7 @@ export class Shell {
     } finally {
       reply.classList.remove('streaming');
       activity.finish(ok);
+      void reportRun({ outcome, error: errorText, answerChars, ms: Date.now() - runStartedAt, requests: takeRequestLog() });
       status.remove();
       this.running = null;
       this.sendBtn.replaceChildren(icon('send'));
@@ -861,6 +887,16 @@ export class Shell {
       localStorage.setItem(PREF_KEYS.onboarded, '1');
       if (connect && !session.signedIn) this.showSignIn();
     });
+  }
+
+  private showUpdateReady(id: string, version: string): void {
+    if (this.running) return;
+    this.showModal((close) => [
+      h('h2', {}, 'Update ready'),
+      h('p', { class: 'muted' }, `Mapp ${version} is downloaded. Restart now to use it; your apps and chats stay.`),
+      h('button', { class: 'btn mono', onclick: () => { close(); void CapacitorUpdater.set({ id }); } }, 'Restart now'),
+      h('button', { class: 'btn plain', onclick: close }, 'Later'),
+    ]);
   }
 
   private toast(text: string): void {

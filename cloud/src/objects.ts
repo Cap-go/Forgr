@@ -6,6 +6,8 @@ export interface Env {
   LOADER: WorkerLoader;
   USER: DurableObjectNamespace<UserSpace>;
   SPACE: DurableObjectNamespace<SharedSpace>;
+  DIAG: DurableObjectNamespace<Diagnostics>;
+  DIAG_KEY: string;
   SESSION_SECRET: string;
   OPENAI_ISSUER: string;
   OPENAI_JWKS_URL: string;
@@ -314,5 +316,26 @@ export class SharedSpace extends DurableObject<Env> {
     for (const ws of this.ctx.getWebSockets()) {
       try { ws.send(data); } catch { /* closed */ }
     }
+  }
+}
+
+/** Failure reports from the app: request metadata only, newest 500 kept. */
+export class Diagnostics extends DurableObject<Env> {
+  private sql: SqlStorage;
+
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env);
+    this.sql = ctx.storage.sql;
+    this.sql.exec('CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL, body TEXT NOT NULL)');
+  }
+
+  add(body: string): void {
+    this.sql.exec('INSERT INTO reports (at, body) VALUES (?, ?)', Date.now(), body);
+    this.sql.exec('DELETE FROM reports WHERE id NOT IN (SELECT id FROM reports ORDER BY id DESC LIMIT 500)');
+  }
+
+  list(limit: number): Array<{ at: number; body: unknown }> {
+    return this.sql.exec('SELECT at, body FROM reports ORDER BY id DESC LIMIT ?', limit).toArray()
+      .map((r) => ({ at: Number(r.at), body: JSON.parse(String(r.body)) }));
   }
 }
