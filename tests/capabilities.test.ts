@@ -45,11 +45,20 @@ describe('capability registry', () => {
     for (const event of CAPABILITY_GROUPS.flatMap((g) => g.capabilities.flatMap((c) => c.events ?? []))) {
       expect(text).toContain(`mapp.on('${event}'`);
     }
-    expect(text.length).toBeLessThan(12000);
+    expect(text.length).toBeLessThan(14000);
   });
 
   test('unknown capabilities are not found', () => {
     expect(findCapability('camera.photo')).toBeUndefined();
     expect(findCapability('share')).toBeUndefined();
+  });
+});
+
+describe('ai capability', () => {
+  test('parses JSON replies with fences or surrounding text', async () => {
+    const { parseJsonReply } = await import('../src/apps/capabilities/ai');
+    expect(parseJsonReply('```json\n{"a":1}\n```')).toEqual({ a: 1 });
+    expect(parseJsonReply('Here you go: [1,2,3] done')).toEqual([1, 2, 3]);
+    expect(() => parseJsonReply('no json here')).toThrow('valid JSON');
   });
 });

@@ -25,6 +25,16 @@ Every signed-in user has their own cloud. Pick the simplest layer that fits:
 - mapp.spaces: data shared with other Mapp users. Typical flow: the app has a "Share" action that calls mapp.spaces.create(name, description) once (store the spaceId in mapp.storage), then mapp.spaces.invite(spaceId) opens the share sheet with a link + code. The other person joins (in their app with mapp.spaces.join(code), or by giving you the code: use join_space) and builds their own app on the same space. Always write the data shape in the space description (collections and fields) so other people's builders can use it. Use mapp.spaces.subscribe for live updates; docs carry author = writer's userId; spaces.info lists member names.
 - Server functions (deploy_function tool): sandboxed Cloudflare Workers for logic that must run off the phone: calling APIs with secret keys (request_secret with target cloud, read as env.NAME; never put keys in app HTML), webhooks, public JSON endpoints others can fetch by URL. Code contract: \`export default { async fetch(request, env) { ... } }\`. env.MAPP.docs(appId, {op:'list'|'get'|'put'|'delete', collection, id?, data?, where?, order?, limit?}) reads/writes the user's cloud data of an app; env.MAPP.spaceDocs(spaceId, op) a space they belong to; env.MAPP.spaces() lists them; env.USER_ID. Limits: 100 ms CPU, 50 subrequests per call, no timers/cron. Apps call them with mapp.functions.call(name, input). list_cloud shows existing functions, secrets and spaces.`;
 
+const AI = `# AI features inside apps
+- Default: mapp.ai on the user's own ChatGPT plan, no key, no setup. Use it for any "smart" feature: summaries, chat, rewriting, classification, extraction (json: true or a JSON Schema), photo analysis (images from mapp.camera.takePhoto). Use mapp.ai.stream for chat-style UIs that show text as it arrives. Call mapp.ai.status() first and show "Sign in to ChatGPT in Mapp settings" if unavailable. Always show a loading state; calls take seconds.
+- Image generation, audio transcription, embeddings and realtime voice are not available through the ChatGPT plan. For those, or when the user explicitly wants another provider or model, use that provider's HTTP API: call request_secret for its key (target "device"), then mapp.http.fetch with the key as {{secret:NAME}}. Quick reference:
+  - OpenAI API: POST https://api.openai.com/v1/chat/completions (images: /v1/images/generations, speech-to-text: /v1/audio/transcriptions) header Authorization: Bearer {{secret:OPENAI_API_KEY}}
+  - Anthropic Claude: POST https://api.anthropic.com/v1/messages headers x-api-key: {{secret:ANTHROPIC_API_KEY}}, anthropic-version: 2023-06-01; body {model, max_tokens, messages}
+  - Google Gemini: POST https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent header x-goog-api-key: {{secret:GEMINI_API_KEY}}
+  - Mistral https://api.mistral.ai/v1/chat/completions, Groq https://api.groq.com/openai/v1/chat/completions, OpenRouter https://openrouter.ai/api/v1/chat/completions: OpenAI-compatible, Authorization: Bearer {{secret:<NAME>}}
+  - A self-hosted or other API: ask the user (ask_user) for the base URL if needed, and request_secret for its token.
+  Never guess model names you are unsure of: ask the user or use the provider's list-models endpoint.`;
+
 const SECRETS = `# Secrets, passwords and questions
 - Never ask the user to type or paste an API key, token or password in the chat, and never put one in app code. Call request_secret: the user fills a secure card, the value goes to the iOS Keychain (target "device") or their cloud secrets (target "cloud", for server functions as env.NAME). You only learn saved true/false. You must never try to read, print, log or guess a secret value.
 - Apps use device secrets without holding them: put {{secret:NAME}} in mapp.http.fetch url, headers or body (e.g. headers: { Authorization: 'Bearer {{secret:STRIPE_SECRET_KEY}}' }) and Mapp fills it natively. Only use mapp.secrets.get(name) when the app itself must show or locally use the value (a password vault). In app code, check mapp.secrets.has(name) on start and call mapp.secrets.request(name, { label, kind }) if it is missing.
@@ -54,6 +64,7 @@ export function buildInstructions(current: MiniAppMeta | undefined, apps: MiniAp
     `# Design kit (always use it)\n${KIT_DOC}`,
     `${RULES}\n\n${describeCapabilities()}`,
     CLOUD,
+    AI,
     SECRETS,
     STYLE,
     `# The user's apps\n${list}`,

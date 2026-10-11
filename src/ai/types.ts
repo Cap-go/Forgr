@@ -10,7 +10,13 @@ export type ToolOutput = string | Array<
   | { type: 'input_image'; image_url: string; detail: 'auto' }
 >;
 
-export type ConversationItem = ChatMessage
+/** Multimodal user message (text + images) for the Responses API. */
+export interface RichMessage {
+  role: 'user' | 'assistant';
+  content: Array<{ type: 'input_text'; text: string } | { type: 'input_image'; image_url: string; detail: 'auto' | 'low' | 'high' }>;
+}
+
+export type ConversationItem = ChatMessage | RichMessage
   | { type: 'function_call'; call_id: string; name: string; namespace?: string; arguments: string }
   | { type: 'function_call_output'; call_id: string; output: ToolOutput };
 
