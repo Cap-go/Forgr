@@ -661,5 +661,21 @@ h5.md-h, h6.md-h { font-size: 15px; color: var(--secondary); }
 .md-table th { font-weight: 600; background: var(--fill); }
 .md-table tr:last-child td { border-bottom: none; }
 
-.capgo-row { min-height: 60px; }
 .capgo-logo { width: 34px; height: 34px; flex: none; border-radius: 8px; box-shadow: 0 0 0 0.5px var(--separator); }
+
+/* ------------------------------------------------------------- settings about */
+
+.about { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 32px 16px 8px; }
+.about-icon { width: 72px; height: 72px; margin-bottom: 8px; filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.18)); }
+.about-version { margin: 0; font-size: 17px; font-weight: 500; color: var(--label); font-variant-numeric: tabular-nums; }
+.about-author { margin: 0; font-size: 15px; color: var(--secondary); }
+.about-author a { color: var(--label); font-weight: 600; text-decoration: none; }
+.about-note { margin: 2px 0 10px; font-size: 13px; line-height: 1.4; color: var(--secondary); max-width: 280px; }
+.capgo-pill {
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 48px; padding: 0 20px 0 7px; border-radius: 24px;
+  background: var(--fill); color: var(--label); font-size: 16px; font-weight: 600;
+  box-shadow: inset 0 0 0 0.5px var(--separator);
+}
+.capgo-pill:active { opacity: 0.6; }
+.capgo-pill .capgo-logo { width: 34px; height: 34px; border-radius: 50%; box-shadow: none; }

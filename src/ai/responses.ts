@@ -255,14 +255,15 @@ async function* parseEvents(body: ReadableStream<Uint8Array>, diag?: RequestDiag
         }
         if (type === 'response.completed') {
           // The final payload is authoritative; done items cover streams without output here.
-          const parsed = parseResponsesJson({
-            id: responseId,
-            output: response?.output ?? [...outputItems.entries()]
-              .sort(([a], [b]) => a - b).map(([, item]) => item),
-          });
+          // With store:false the final event can carry an empty output list:
+          // the items streamed before it are then the only record of the turn.
+          const streamed = [...outputItems.entries()].sort(([a], [b]) => a - b).map(([, item]) => item);
+          const final = Array.isArray(response?.output) ? (response.output as Array<Record<string, unknown>>) : [];
+          const output = final.length ? final : streamed;
+          const parsed = parseResponsesJson({ id: responseId, output });
           if (!parsed.assistantText) parsed.assistantText = assistantText;
           if (diag) {
-            const out = (response?.output ?? [...outputItems.values()]) as Array<Record<string, unknown>>;
+            const out = output;
             diag.outputTypes = out.map((o) => String(o.type) + (o.namespace ? `:${String(o.namespace)}` : ''));
             diag.textChars = parsed.assistantText.length;
             diag.toolCalls = parsed.toolCalls.map((c) => c.name);

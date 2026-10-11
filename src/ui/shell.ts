@@ -1036,13 +1036,11 @@ export class Shell {
 
   private showSettings(): void {
     this.showModal((close) => {
-      const bundle = h('span', {}, '');
-      const updateInfo = h('span', { class: 'row-sub' }, `Mapp ${__APP_VERSION__} · instant delta updates`);
+      const version = h('p', { class: 'about-version' }, `Version ${__APP_VERSION__}`);
       if (Capacitor.isNativePlatform()) {
-        void Promise.all([CapacitorUpdater.current(), CapacitorUpdater.getChannel().catch(() => null)]).then(([c, channel]) => {
-          const version = c.bundle.version === 'builtin' ? `${c.native} (built-in)` : c.bundle.version;
-          bundle.textContent = ` · Live update ${version}`;
-          updateInfo.textContent = `Live update ${version}${channel?.channel ? ` · ${channel.channel}` : ''} · delta updates`;
+        void CapacitorUpdater.current().then((c) => {
+          const live = c.bundle.version === 'builtin' ? __APP_VERSION__ : c.bundle.version;
+          version.textContent = `Version ${c.native} · ${live}`;
         }).catch(() => undefined);
       }
       const open = (url: string) => {
@@ -1084,16 +1082,13 @@ export class Shell {
           link('Privacy Policy', APP_LINKS.privacy),
           link('Terms of Use', APP_LINKS.terms),
           link('Support', APP_LINKS.support)),
-        h('div', { class: 'section-label' }, 'Updates'),
-        h('div', { class: 'group' },
-          h('button', { class: 'row capgo-row', onclick: () => open(CAPGO_URL) },
-            capgoLogo(),
-            h('div', { class: 'row-body' },
-              h('span', { class: 'row-title' }, 'Live updates by Capgo'),
-              updateInfo),
-            icon('chevron', 'icon row-icon'))),
-        h('p', { class: 'group-footer' }, 'Mapp gets new features instantly with Capgo live updates, downloading only the files that changed. Tap to learn more.'),
-        h('p', { class: 'group-footer center' }, `Mapp ${__APP_VERSION__}`, bundle),
+        h('div', { class: 'about' },
+          icon('logo', 'about-icon'),
+          version,
+          h('p', { class: 'about-author' }, 'Made by ',
+            h('a', { href: AUTHOR_URL, onclick: (e: Event) => { e.preventDefault(); openInSafari(AUTHOR_URL); } }, 'Martin Donadieu')),
+          h('p', { class: 'about-note' }, 'Built with Capacitor and shipped with Capgo live updates.'),
+          h('button', { class: 'capgo-pill', onclick: () => openInSafari(CAPGO_URL) }, capgoLogo(), 'Made with Capgo')),
       ];
     });
   }
@@ -1164,6 +1159,7 @@ function beginLabel(name: string): string {
   }
 }
 
+const AUTHOR_URL = 'https://x.com/martindonadieu';
 const CAPGO_URL = 'https://capgo.app/?utm_source=mapp&utm_medium=app&utm_campaign=settings';
 
 function capgoLogo(): Element {
@@ -1173,4 +1169,12 @@ function capgoLogo(): Element {
   logo.setAttribute('class', 'capgo-logo');
   logo.setAttribute('aria-hidden', 'true');
   return logo;
+}
+
+/**
+ * Opens a link in Safari itself (not an in-app browser). In the iOS shell,
+ * Capacitor hands window.open targets to UIApplication.open.
+ */
+function openInSafari(url: string): void {
+  window.open(url, '_blank', 'noopener');
 }

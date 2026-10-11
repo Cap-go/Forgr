@@ -2,7 +2,8 @@ import { describe, expect, mock, test } from 'bun:test';
 
 // Native plugin modules call registerPlugin at import time; stub the AI/session modules that touch storage.
 mock.module('../src/ai/session', () => ({ session: { withToken: async () => '' } }));
-mock.module('../src/ai/responses', () => ({ completeText: async () => '' }));
+const realResponses = await import('../src/ai/responses');
+mock.module('../src/ai/responses', () => ({ ...realResponses, completeText: async () => '' }));
 
 const { CAPABILITY_GROUPS, capabilityNames, describeCapabilities, findCapability } = await import('../src/apps/capabilities');
 
