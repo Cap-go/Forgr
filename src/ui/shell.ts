@@ -15,6 +15,7 @@ import { appStore, type MiniAppMeta } from '../apps/store';
 import { STARTER_APPS } from '../apps/templates';
 import { APP_LINKS, PREF_KEYS } from '../config';
 import { lifecycle } from '../lifecycle';
+import { Activity } from './activity';
 import { PinchDetector } from './gesture';
 import { parseLink, type LinkAction } from '../links';
 import { showOnboarding } from './onboarding';
@@ -623,9 +624,12 @@ export class Shell {
         this.messagesEl.append(h('div', { class: 'msg assistant note' }, 'Started from a link. This request can only create a new app.'));
       }
     }
-    const status = h('div', { class: 'status' }, h('span', { class: 'dots', 'aria-hidden': 'true' }), 'Thinking…');
+    const activity = new Activity();
+    // Answers and errors go right after the timeline, like ChatGPT's thought block.
+    const status = h('div', { class: 'status-anchor' });
+    let ok = false;
     let reply = h('div', { class: 'msg assistant streaming' });
-    this.messagesEl.append(status);
+    this.messagesEl.append(activity.el, status);
     this.scrollMessages();
 
     const controller = new AbortController();
@@ -652,12 +656,15 @@ export class Shell {
         },
         {
           onDelta: (delta) => {
-            if (!reply.isConnected) this.messagesEl.insertBefore(reply, status);
+            if (!reply.isConnected) {
+              activity.step('Writing the reply');
+              this.messagesEl.insertBefore(reply, status);
+            }
             reply.textContent += delta;
             this.scrollMessages();
           },
           onToolStart: (name, args) => {
-            status.replaceChildren(h('span', { class: 'dots', 'aria-hidden': 'true' }), toolLabel(name, args));
+            activity.step(toolLabel(name, args));
             if (reply.isConnected) {
               // Text before a tool call is its own message; later text gets a fresh bubble.
               reply.classList.remove('streaming');
@@ -667,10 +674,20 @@ export class Shell {
           },
           onToolProgress: (name, chars) => {
             const what = name === 'create_app' || name === 'write_app' ? 'Writing the app' : name === 'edit_app' ? 'Writing changes' : name === 'deploy_function' ? 'Writing the function' : 'Preparing';
-            status.replaceChildren(h('span', { class: 'dots', 'aria-hidden': 'true' }), `${what}… ${chars > 1024 ? `${(chars / 1024).toFixed(1)} KB` : ''}`);
+            activity.update(`${what}${chars > 1024 ? ` · ${(chars / 1024).toFixed(1)} KB` : '…'}`);
+          },
+          onPhase: (phase, detail) => {
+            if (phase === 'connecting') activity.step('Connecting to ChatGPT');
+            else if (phase === 'waiting') activity.step('Thinking');
+            else if (phase === 'connected-buffered') activity.step('Thinking (slower connection, the answer arrives at once)');
+            else if (phase === 'tool_begin') activity.step(beginLabel(detail ?? ''));
+          },
+          onReasoning: (delta) => {
+            activity.think(delta);
+            this.scrollMessages();
           },
           onPaused: () => {
-            status.replaceChildren(h('span', { class: 'dots', 'aria-hidden': 'true' }), 'Paused while Mapp is in the background');
+            activity.step('Paused while Mapp is in the background');
           },
           onCheckpoint: (input, answer) => {
             if (job.key !== conversation.key) {
@@ -682,7 +699,7 @@ export class Shell {
           onRetry: () => {
             reply.remove();
             reply = h('div', { class: 'msg assistant streaming' });
-            status.replaceChildren(h('span', { class: 'dots', 'aria-hidden': 'true' }), 'Connection dropped, retrying…');
+            activity.step('Connection dropped, retrying');
           },
           onToolEnd: () => undefined,
         },
@@ -690,6 +707,7 @@ export class Shell {
         saved?.input.length ? { input: saved.input, answer: saved.answer } : undefined,
       );
       void appStore.clearJob(job.key);
+      ok = true;
       conversation.messages.push({ role: 'assistant', content: answer || 'Done.' });
       if (!this.messagesEl.querySelector('.msg.assistant') && answer) {
         this.messagesEl.insertBefore(this.bubbleFor('assistant', answer), status);
@@ -708,6 +726,7 @@ export class Shell {
       }
     } finally {
       reply.classList.remove('streaming');
+      activity.finish(ok);
       status.remove();
       this.running = null;
       this.sendBtn.replaceChildren(icon('send'));
@@ -833,18 +852,23 @@ export class Shell {
 }
 
 function toolLabel(name: string, args: Record<string, unknown>): string {
-  const appName = (id: unknown) => appStore.get(String(id))?.name ?? 'app';
+  const appName = (id: unknown) => appStore.get(String(id))?.name ?? 'the app';
   switch (name) {
-    case 'create_app': return `Building ${String(args.name ?? 'your app')}…`;
-    case 'edit_app':
-    case 'write_app': return `Updating ${appName(args.id)}…`;
-    case 'read_app': return `Reading ${appName(args.id)}…`;
-    case 'open_app': return `Opening ${appName(args.id)}…`;
-    case 'get_app_logs': return 'Checking for errors…';
-    case 'update_app_info': return 'Updating icon and name…';
+    case 'create_app': return `Installing ${String(args.name ?? 'your app')} and checking it runs`;
+    case 'edit_app': return `Applying ${Array.isArray(args.edits) ? args.edits.length : ''} changes to ${appName(args.id)}`.replace('  ', ' ');
+    case 'write_app': return `Replacing ${appName(args.id)} and checking it runs`;
+    case 'read_app': return `Reading the code of ${appName(args.id)}`;
+    case 'open_app': return `Opening ${appName(args.id)}`;
+    case 'get_app_logs': return 'Checking the app for errors';
+    case 'update_app_info': return 'Updating the icon and name';
+    case 'list_apps': return 'Looking at your apps';
     case 'read_skill': return `Reading Capgo skill: ${String(args.name ?? '')}`;
-    case 'list_skills': return 'Checking Capgo skills…';
-    default: return 'Working…';
+    case 'list_skills': return 'Checking Capgo skills';
+    case 'list_cloud': return 'Looking at your cloud';
+    case 'deploy_function': return `Deploying server function ${String(args.name ?? '')}`;
+    case 'set_secret': return `Saving secret ${String(args.name ?? '')}`;
+    case 'join_space': return 'Joining the shared space';
+    default: return 'Working';
   }
 }
 
@@ -853,4 +877,18 @@ function friendlyError(message: string): string {
   if (/usage limit/i.test(message)) return message;
   if (/sign in/i.test(message)) return 'Your ChatGPT session expired. Sign in again from Settings.';
   return message.length > 220 ? `${message.slice(0, 220)}…` : message;
+}
+
+/** Label while the model is writing a tool call, before it runs. */
+function beginLabel(name: string): string {
+  switch (name) {
+    case 'create_app': return 'Writing the app';
+    case 'write_app': return 'Rewriting the app';
+    case 'edit_app': return 'Writing changes';
+    case 'deploy_function': return 'Writing the server function';
+    case 'read_app': return 'Reading the app';
+    case 'read_skill':
+    case 'list_skills': return 'Checking Capgo skills';
+    default: return 'Preparing the next step';
+  }
 }

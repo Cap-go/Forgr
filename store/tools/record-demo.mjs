@@ -67,7 +67,7 @@ await tap('.send');
 
 await caption('AI builds it, right on your phone', 'with your ChatGPT plan');
 await app.locator('.msg.assistant:not(.streaming)').last().waitFor({ timeout: 20000 });
-await app.locator('.status').waitFor({ state: 'detached', timeout: 20000 });
+await app.locator('.activity.finished').first().waitFor({ timeout: 20000 });
 await wait(1200);
 await tap('.sheet-head .chip:not(.strong)', { nth: 1 });
 
@@ -91,7 +91,7 @@ await app.locator('.composer textarea').pressSequentially('Make it dark with neo
 await wait(400);
 await tap('.send');
 await app.locator('.status').waitFor({ state: 'attached', timeout: 5000 });
-await app.locator('.status').waitFor({ state: 'detached', timeout: 20000 });
+await app.locator('.activity.finished').first().waitFor({ timeout: 20000 });
 await wait(1600);
 await tap('.sheet-head .chip:not(.strong)', { nth: 1 });
 await wait(800);

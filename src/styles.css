@@ -555,3 +555,33 @@ button.row:active { background: var(--highlight); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* ------------------------------------------------------------- activity timeline */
+
+.activity { align-self: stretch; font-size: 15px; color: var(--secondary); }
+.activity-summary {
+  list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  min-height: 28px; color: var(--secondary); font-size: 15px;
+}
+.activity-summary::-webkit-details-marker { display: none; }
+.activity-summary::after {
+  content: ''; width: 7px; height: 7px; margin-left: 2px;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg); transition: transform 0.2s;
+}
+.activity[open] > .activity-summary::after { transform: rotate(45deg) translate(-2px, -2px); }
+.activity-steps { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 2px; padding-left: 2px; }
+.activity-step { display: flex; align-items: center; gap: 10px; min-height: 22px; }
+.activity-step .dots, .activity-icon { width: 16px; height: 16px; flex: none; }
+.activity-icon { stroke-width: 2.4; }
+.activity-step.done { color: var(--tertiary); }
+.activity-step.done .activity-icon { color: var(--secondary); }
+.activity-step.failed .activity-icon { color: var(--danger); }
+.activity-step.running .activity-label { color: var(--label); }
+.activity-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.activity-time { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--tertiary); }
+.activity-reasoning {
+  margin: 4px 0 2px 26px; font-size: 14px; line-height: 1.45; color: var(--secondary);
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+  white-space: pre-wrap;
+}

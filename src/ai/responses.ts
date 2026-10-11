@@ -42,13 +42,30 @@ export async function resolveModel(accessToken: string): Promise<string> {
   return slug;
 }
 
+/** Set when the account's model rejects reasoning summaries; not asked again. */
+let reasoningSummaries = true;
+
 export async function createResponseStream(req: ResponseRequest): Promise<AsyncIterable<StreamEvent>> {
+  try {
+    return await openStream(req);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (reasoningSummaries && /\(400\)/.test(message) && /reasoning|summary/i.test(message)) {
+      reasoningSummaries = false;
+      return openStream(req);
+    }
+    throw error;
+  }
+}
+
+async function openStream(req: ResponseRequest): Promise<AsyncIterable<StreamEvent>> {
   const model = await resolveModel(req.accessToken);
   const body = JSON.stringify({
     model,
     input: req.input,
     instructions: req.instructions,
     ...(req.tools?.length ? { tools: req.tools } : {}),
+    ...(reasoningSummaries ? { reasoning: { summary: 'auto' } } : {}),
     stream: true,
     store: false,
   });
@@ -74,7 +91,7 @@ export async function createResponseStream(req: ResponseRequest): Promise<AsyncI
     if (native.status < 200 || native.status >= 300) throw new Error(formatApiError(native.status, native.text));
     const stream = new Response(native.text).body;
     if (!stream) throw new Error('ChatGPT returned an empty response');
-    return parseSseStream(stream);
+    return parseSseStream(stream, true);
   }
   if (!res.ok) throw new Error(formatApiError(res.status, await res.text()));
   if (!res.body) throw new Error('ChatGPT returned an empty response');
@@ -121,7 +138,8 @@ async function httpRequest(
   return { status: res.status, text: await res.text() };
 }
 
-async function* parseSseStream(body: ReadableStream<Uint8Array>): AsyncIterable<StreamEvent> {
+async function* parseSseStream(body: ReadableStream<Uint8Array>, buffered = false): AsyncIterable<StreamEvent> {
+  yield { type: 'connected', buffered };
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
@@ -152,9 +170,18 @@ async function* parseSseStream(body: ReadableStream<Uint8Array>): AsyncIterable<
           assistantText += delta;
           yield { type: 'text_delta', delta };
         }
+        if (type === 'response.reasoning_summary_text.delta') {
+          yield { type: 'reasoning_delta', delta: String(event.delta ?? '') };
+        }
+        if (type === 'response.reasoning_summary_part.done') {
+          yield { type: 'reasoning_delta', delta: '\n\n' };
+        }
         if (type === 'response.output_item.added' || type === 'response.output_item.done') {
           const item = event.item as Record<string, unknown> | undefined;
           if (item) outputItems.set(Number(event.output_index), { ...item });
+          if (item?.type === 'function_call' && type === 'response.output_item.added') {
+            yield { type: 'tool_begin', name: String(item.name ?? '') };
+          }
         }
         if (type === 'response.function_call_arguments.delta' ||
             type === 'response.function_call_arguments.done') {

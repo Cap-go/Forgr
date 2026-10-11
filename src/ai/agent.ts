@@ -11,6 +11,10 @@ export interface AgentHooks {
   onToolProgress?(name: string, chars: number): void;
   /** A dropped connection is being retried. */
   onRetry?(attempt: number): void;
+  /** Request phases for the activity timeline. */
+  onPhase?(phase: 'connecting' | 'waiting' | 'connected-buffered' | 'tool_begin', detail?: string): void;
+  /** Streamed reasoning summary text. */
+  onReasoning?(delta: string): void;
   /** Mapp went to the background mid-request; waiting to come back. */
   onPaused?(): void;
   /** Saved after every completed step so an interrupted run can resume. */
@@ -40,6 +44,7 @@ export async function runAgent(
   for (let step = 1; step <= MAX_STEPS; step++) {
     if (signal?.aborted) throw new Error('Stopped');
     const turn = await withRetry(() => session.withToken(async (accessToken) => {
+      hooks.onPhase?.('connecting');
       const stream = await createResponseStream({
         accessToken,
         input,
@@ -51,6 +56,9 @@ export async function runAgent(
         if (signal?.aborted) throw new Error('Stopped');
         if (event.type === 'text_delta') hooks.onDelta(event.delta);
         else if (event.type === 'tool_progress') hooks.onToolProgress?.(event.name, event.chars);
+        else if (event.type === 'reasoning_delta') hooks.onReasoning?.(event.delta);
+        else if (event.type === 'tool_begin') hooks.onPhase?.('tool_begin', event.name);
+        else if (event.type === 'connected') hooks.onPhase?.(event.buffered ? 'connected-buffered' : 'waiting');
         else parsed = event.parsed;
       }
       if (!parsed) throw new Error('ChatGPT stream ended before completion');

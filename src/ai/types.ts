@@ -27,6 +27,12 @@ export interface ParsedTurn {
 
 export type StreamEvent =
   | { type: 'text_delta'; delta: string }
+  /** Response headers arrived; buffered = slower fallback that only delivers at the end. */
+  | { type: 'connected'; buffered: boolean }
+  /** Streamed summary of the model's reasoning. */
+  | { type: 'reasoning_delta'; delta: string }
+  /** The model started writing a tool call. */
+  | { type: 'tool_begin'; name: string }
   /** A tool call is being written: name and how many argument chars so far. */
   | { type: 'tool_progress'; name: string; chars: number }
   | { type: 'completed'; parsed: ParsedTurn };

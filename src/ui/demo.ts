@@ -49,11 +49,20 @@ export async function scriptedAgent(
 ): Promise<string> {
   const ask = history[history.length - 1]?.content.toLowerCase() ?? '';
   if (ask.includes('workout')) {
-    await wait(700);
-    hooks.onToolStart('list_skills', {});
-    await wait(700);
+    hooks.onPhase?.('connecting');
+    await wait(500);
+    hooks.onPhase?.('waiting');
+    for (const part of ['Planning a workout log: ', 'today\'s exercises with sets, ', 'a weekly bar chart, ', 'and data saved on the phone.']) {
+      hooks.onReasoning?.(part);
+      await wait(350);
+    }
+    hooks.onPhase?.('tool_begin', 'create_app');
+    for (let chars = 800; chars <= 9600; chars += 1600) {
+      hooks.onToolProgress?.('create_app', chars);
+      await wait(220);
+    }
     hooks.onToolStart('create_app', { name: 'Workouts' });
-    await wait(2200);
+    await wait(900);
     const app = await appStore.create({ name: 'Workouts', emoji: '🏋️', color: '#0ea5e9', description: 'Log sets and see the week.', html: workoutHtml(false) });
     await ctx.openApp(app.id);
     hooks.onToolEnd('create_app', true, '');
