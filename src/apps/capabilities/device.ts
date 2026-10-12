@@ -39,7 +39,7 @@ export const device: CapabilityGroup = {
       name: 'device.stats',
       signature: "() -> { storage: { totalBytes, freeBytes, usedPercent }, memory: { totalBytes, appUsedBytes, usedPercent }, cpuCores, thermalState, lowPowerMode }",
       run: async (_args, ctx) => {
-        if (!ctx.native) throw new Error('Only available on iPhone');
+        if (!ctx.native) throw new Error('Only available in the Mapp app');
         const s = await DeviceInfo.getInfo();
         return {
           storage: { totalBytes: s.storage.totalBytes ?? null, freeBytes: s.storage.freeBytes ?? null, usedPercent: s.storage.usedPercent ?? null },

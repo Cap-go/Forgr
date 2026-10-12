@@ -30,6 +30,7 @@ import { PinchDetector } from './gesture';
 import { parseLink, type LinkAction } from '../links';
 import { showOnboarding } from './onboarding';
 import { h, icon } from './dom';
+import { BROWSER, DEVICE, SECURE_STORE } from '../platform';
 
 const HOME_CHAT = 'home';
 
@@ -228,7 +229,7 @@ export class Shell {
       h('div', { class: 'group' },
         h('div', { class: 'action-message' },
           h('strong', {}, `Delete ${app.name}?`),
-          h('span', { class: 'footnote' }, 'The tool and its data are removed from this iPhone. This cannot be undone.')),
+          h('span', { class: 'footnote' }, `The tool and its data are removed from this ${DEVICE}. This cannot be undone.`)),
         h('button', { class: 'row center danger', onclick: async () => {
           close();
           if (this.currentAppId === app.id) this.goHome();
@@ -288,7 +289,7 @@ export class Shell {
         kind: spec.kind,
         username: spec.username,
         help: `${spec.appName} needs this.`,
-        destination: 'in the iOS Keychain',
+        destination: `in the ${SECURE_STORE}`,
       }),
     });
     this.frame = frame;
@@ -655,7 +656,7 @@ export class Shell {
         : SUGGESTIONS;
       this.messagesEl.append(
         h('div', { class: 'empty-chat' },
-          h('p', { class: 'empty-lead' }, app ? `What should change in ${app.name}?` : 'Describe the tool you want. Mapp makes it on this iPhone.'),
+          h('p', { class: 'empty-lead' }, app ? `What should change in ${app.name}?` : `Describe the tool you want. Mapp makes it on this ${DEVICE}.`),
           h('div', { class: 'section-label' }, app ? 'Try' : 'Ideas'),
           h('div', { class: 'group ideas' }, ...ideas.map((idea) =>
             h('button', { class: 'row idea', onclick: () => { this.input.value = idea; this.submit(); } },
@@ -877,7 +878,7 @@ export class Shell {
             activity.step(`Waiting for ${spec.label}`);
             const card = secretCard({
               ...spec,
-              destination: spec.target === 'cloud' ? 'in your Mapp Cloud' : 'in the iOS Keychain',
+              destination: spec.target === 'cloud' ? 'in your Mapp Cloud' : `in the ${SECURE_STORE}`,
             }, async (value, username) => {
               if (spec.target === 'cloud') await cloud.call('PUT', `/v1/secrets/${spec.name}`, { value });
               else await saveSecret({ name: spec.name, label: spec.label, kind: spec.kind, username: username ?? spec.username }, value);
@@ -1101,7 +1102,7 @@ export class Shell {
         h('div', { class: 'signin' },
           icon('logo', 'modal-logo'),
           h('h2', {}, 'Connect ChatGPT'),
-          h('p', { class: 'secondary-text' }, 'Mapp makes your tools with your own ChatGPT plan. If you are already signed in to ChatGPT in Safari, it is one tap, and your saved passwords and passkeys work. No Mapp account.'),
+          h('p', { class: 'secondary-text' }, `Mapp makes your tools with your own ChatGPT plan. If you are already signed in to ChatGPT in ${BROWSER}, it is one tap, and your saved passwords and passkeys work. No Mapp account.`),
           btn,
           error,
           h('button', { class: 'btn plain', onclick: close }, 'Not Now'),
@@ -1153,7 +1154,7 @@ export class Shell {
               h('div', { class: 'row-body' }, h('span', { class: 'row-title' }, sec.label), h('span', { class: 'row-sub' }, sec.name + (sec.username ? ` · ${sec.username}` : ''))),
               h('button', { class: 'text-btn danger', 'aria-label': `Delete ${sec.name}`, onclick: async () => { await deleteSecret(sec.name); close(); this.toast(`Deleted ${sec.name}`); } }, 'Delete')))
             : [h('div', { class: 'row' }, h('span', { class: 'row-sub' }, 'No saved keys or passwords yet.'))])),
-        h('p', { class: 'group-footer' }, 'Stored in the iOS Keychain. The AI never sees them; your tools use them when they call their service.'),
+        h('p', { class: 'group-footer' }, `Stored in the ${SECURE_STORE}. The AI never sees them; your tools use them when they call their service.`),
         h('div', { class: 'section-label' }, 'Gestures'),
         h('div', { class: 'group' },
           h('button', { class: 'row', onclick: () => { close(); this.showOnboarding(); } }, h('span', { class: 'row-title' }, 'Show the Tour Again'), icon('chevron', 'icon row-icon'))),

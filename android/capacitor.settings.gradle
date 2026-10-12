@@ -112,3 +112,6 @@ project(':capgo-oauth-loopback').projectDir = new File('../node_modules/@capgo/o
 
 include ':capacitor-secure-storage-plugin'
 project(':capacitor-secure-storage-plugin').projectDir = new File('../node_modules/capacitor-secure-storage-plugin/android')
+
+include ':capgo-http-stream'
+project(':capgo-http-stream').projectDir = new File('../node_modules/@capgo/http-stream/android')

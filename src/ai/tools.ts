@@ -108,7 +108,7 @@ const TOOLS = [
   {
     type: 'function',
     name: 'request_secret',
-    description: 'Ask the user for an API key, token or password through a secure card. The value goes to the Keychain (target "device", for apps) or the user\'s cloud secrets (target "cloud", for server functions). You never see the value; you only learn whether it was saved.',
+    description: 'Ask the user for an API key, token or password through a secure card. The value goes to secure device storage (target "device", for apps) or the user\'s cloud secrets (target "cloud", for server functions). You never see the value; you only learn whether it was saved.',
     parameters: obj({
       name: str('UPPER_SNAKE_CASE, e.g. STRIPE_SECRET_KEY'),
       label: str('What it is, shown to the user, e.g. "Stripe secret key"'),
@@ -326,7 +326,7 @@ const FORBIDDEN: Array<[RegExp, string]> = [
   [/\blocalStorage\b|\bsessionStorage\b|\bindexedDB\b|document\.cookie/, 'Browser storage is blocked in the sandbox: use mapp.storage.'],
   [/navigator\.geolocation/, 'navigator.geolocation does not work: use mapp.location.'],
   [/getUserMedia|<input[^>]+capture=/, 'Camera/microphone web APIs do not work: use the mapp camera/audio capabilities.'],
-  [/navigator\.vibrate/, 'navigator.vibrate does nothing on iPhone: use mapp.haptics.'],
+  [/navigator\.vibrate/, 'navigator.vibrate does not work in Mapp tools: use mapp.haptics.'],
   [/\bnew Notification\(|Notification\.requestPermission/, 'Notification API does not work: use mapp.notifications.'],
   [/\bwindow\.open\(/, 'window.open is blocked: use mapp.app.openUrl.'],
   [/\b(alert|confirm|prompt)\(/, 'Avoid alert/confirm/prompt: use the kit sheet or inline UI.'],

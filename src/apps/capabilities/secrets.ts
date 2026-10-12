@@ -9,7 +9,7 @@ function guard(ctx: CapabilityContext): void {
 
 export const secrets: CapabilityGroup = {
   group: 'secrets',
-  plugin: 'iOS Keychain (Mapp vault)',
+  plugin: 'Secure device storage (Mapp vault)',
   summary: "The user's saved API keys and passwords. Prefer {{secret:NAME}} placeholders in mapp.http.fetch headers/body: Mapp fills them natively and your JS never holds the value.",
   capabilities: [
     {

@@ -5,7 +5,7 @@ import type { CapabilityContext } from './types';
 export const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 
 export function requireNative(ctx: CapabilityContext): void {
-  if (!ctx.native) throw new Error('Only available on iPhone');
+  if (!ctx.native) throw new Error('Only available in the Mapp app');
 }
 
 export function str(args: Record<string, unknown>, key: string, required = true): string {

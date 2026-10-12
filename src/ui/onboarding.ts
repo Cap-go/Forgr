@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { PinchDetector } from './gesture';
 import { h, icon } from './dom';
+import { DEVICE, SECURE_STORE } from '../platform';
 
 interface Slide {
   art: () => HTMLElement;
@@ -26,7 +27,7 @@ const SLIDES: Slide[] = [
   {
     art: () => h('div', { class: 'art art-welcome' }, icon('logo', 'welcome-logo')),
     title: 'Welcome to Mapp',
-    body: 'Build the small tools you wish you had, just by describing them. They are made for you and live on your iPhone.',
+    body: `Build the small tools you wish you had, just by describing them. They are made for you and live on your ${DEVICE}.`,
   },
   {
     art: () => h('div', { class: 'art art-tools' },
@@ -89,9 +90,9 @@ const SLIDES: Slide[] = [
     art: () => h('div', { class: 'art art-private' },
       h('div', { class: 'lock-badge' }, icon('lock')),
       h('ul', { class: 'facts' },
-        h('li', {}, icon('check'), 'Tools and data stay on this iPhone'),
+        h('li', {}, icon('check'), `Tools and data stay on this ${DEVICE}`),
         h('li', {}, icon('check'), 'Runs on your own ChatGPT plan'),
-        h('li', {}, icon('check'), 'Sign in kept in the iOS Keychain'),
+        h('li', {}, icon('check'), `Sign in kept in the ${SECURE_STORE}`),
         h('li', {}, icon('check'), 'No ads, no tracking'))),
     title: 'Private by design',
     body: 'There is no Mapp account. Connect ChatGPT to start building, or try the starter tools first.',

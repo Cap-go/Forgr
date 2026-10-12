@@ -1,14 +1,16 @@
 // Captures raw App Store screens from the dev server in store demo mode.
 // bun run dev (port 5181), then: bun shoot-store.mjs  ->  ../screenshots/raw/*.png (1320x2868)
+// OS=android bun shoot-store.mjs  ->  ../screenshots/raw-android/*.png (1236x2745, Android chrome and wording)
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
 const base = process.env.BASE ?? 'http://localhost:5181';
-const out = new URL('../screenshots/raw/', import.meta.url).pathname;
+const android = process.env.OS === 'android';
+const out = new URL(android ? '../screenshots/raw-android/' : '../screenshots/raw/', import.meta.url).pathname;
 mkdirSync(out, { recursive: true });
 
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 440, height: 956 }, deviceScaleFactor: 3, colorScheme: 'dark' });
+const ctx = await browser.newContext({ viewport: android ? { width: 412, height: 915 } : { width: 440, height: 956 }, deviceScaleFactor: 3, colorScheme: 'dark' });
 const p = await ctx.newPage();
 p.on('pageerror', (e) => console.log('PAGEERROR', e.message));
 const shot = async (name) => {
@@ -20,7 +22,7 @@ const app = (name) => p.locator('.grid .app-icon', { hasText: name });
 
 await p.goto(`${base}/`);
 await p.evaluate(async () => { localStorage.clear(); for (const d of await indexedDB.databases()) indexedDB.deleteDatabase(d.name); });
-await p.goto(`${base}/?demo=store`);
+await p.goto(`${base}/?demo=store${android ? '&os=android' : ''}`);
 await app('Groceries').waitFor();
 await shot('1-home');
 

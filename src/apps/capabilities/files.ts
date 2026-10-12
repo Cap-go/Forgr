@@ -8,7 +8,7 @@ const isRef = (v: string) => v.startsWith('files/') || v.startsWith('capacitor:/
 export const files: CapabilityGroup = {
   group: 'files',
   plugin: '@capacitor/filesystem + @capacitor/share',
-  summary: "The app's own files (photos, recordings, imports, generated files) as { path, url }: url works in <img>/<audio>/<video>, path is the stable id to store. save() exports through the iOS share sheet (Save to Files, AirDrop, Mail, Numbers). <a download> and blob links are also exported automatically.",
+  summary: "The app's own files (photos, recordings, imports, generated files) as { path, url }: url works in <img>/<audio>/<video>, path is the stable id to store. save() exports through the system share sheet (save to files, mail, other apps). <a download> and blob links are also exported automatically.",
   capabilities: [
     {
       name: 'files.write',

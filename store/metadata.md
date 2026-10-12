@@ -26,3 +26,14 @@ only inside Mapp and cannot be published or sold.
 - Promotional text: Describe a small tool you wish you had and use it seconds later. Learn ideas with interactive explainers. Runs on your own ChatGPT plan.
 - Keywords: tools,personal,ai,chatgpt,assistant,tracker,calculator,timer,learn,explainer,habit,reminder,notes
 - Description: see the 1.0 version in App Store Connect (set 2026-10-12 via the API).
+
+# Google Play: Mapp (Android, `app.capgo.mapp`)
+
+- Title: Mapp: Tiny Tools with AI
+- Short description (80): Make tiny personal tools by chatting. Learn concepts by playing with them.
+- Full description: same text as the App Store description, with "iPhone" replaced by "phone" and "iOS Keychain" by "Android Keystore".
+- Category: Productivity. Contact: tori@capgo.app. Privacy policy: https://capgo.app/privacy/
+- Graphics: `store/icon/play-icon-512.png`, `store/screenshots/android/feature-graphic.png` (1024x500), phone screenshots `store/screenshots/android/1-6*.png` (1080x1920).
+- Promo video needs a YouTube URL: upload `store/video/mapp-app-preview.mp4` as unlisted first.
+- Release: `bun run build && bunx cap sync android`, then `./gradlew bundleRelease` with `MAPP_UPLOAD_STORE_FILE`, `MAPP_UPLOAD_STORE_PASSWORD`, `MAPP_UPLOAD_KEY_ALIAS` set (upload key lives outside the repo).
+- Regenerate graphics: `OS=android bun shoot-store.mjs && OS=android bun frame-store.mjs && bun feature-graphic.mjs` in `store/tools` with `bun run dev` on port 5181.

@@ -113,7 +113,8 @@ public class OAuthLoopbackPlugin extends Plugin {
             this.completionUri = completionUri;
         }
 
-        void start() throws IOException {
+        @Override
+        public void start() throws IOException {
             start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
         }
 

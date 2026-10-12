@@ -88,7 +88,7 @@ export const spacesGroup: CapabilityGroup = {
       name: 'spaces.invite',
       params: ['spaceId'],
       signature: '(spaceId) -> { code, url }',
-      doc: 'Owner only. Opens the iOS share sheet with the invite link and returns it.',
+      doc: 'Owner only. Opens the share sheet with the invite link and returns it.',
       run: async (args, ctx) => {
         const invite = await cloud.invite(spaceId(args));
         if (ctx.native) {

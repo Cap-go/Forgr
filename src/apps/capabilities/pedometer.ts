@@ -23,7 +23,7 @@ function shape(m: Measurement) {
 export const pedometer: CapabilityGroup = {
   group: 'pedometer',
   plugin: '@capgo/capacitor-pedometer',
-  summary: 'steps (iPhone keeps 7 days)',
+  summary: 'steps (recent days, as kept by the phone)',
   capabilities: [
     {
       name: 'pedometer.today',

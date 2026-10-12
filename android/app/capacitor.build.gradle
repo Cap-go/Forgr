@@ -46,6 +46,7 @@ dependencies {
     implementation project(':capgo-capacitor-volume-buttons')
     implementation project(':capgo-oauth-loopback')
     implementation project(':capacitor-secure-storage-plugin')
+    implementation project(':capgo-http-stream')
 
 }
 
