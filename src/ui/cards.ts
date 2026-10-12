@@ -48,7 +48,7 @@ export function secretCard(spec: SecretSpec, save: (value: string, username?: st
     ...(user ? [user] : []),
     h('div', { class: 'card-row' }, input, reveal),
     error,
-    h('p', { class: 'card-fine' }, `Stored ${spec.destination} as ${spec.name}. The AI never sees it; only your app's code can use it.`),
+    h('p', { class: 'card-fine' }, `Stored ${spec.destination} as ${spec.name}. The AI never sees it; only your tool's code can use it.`),
     h('div', { class: 'card-actions' }, skip, saveBtn));
 
   const finish = (saved: boolean, text: string) => {

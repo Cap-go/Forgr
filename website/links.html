@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Mapp links: open Mapp and start building from anywhere</title>
-  <meta name="description" content="Deep links for Mapp. Any website, chat or AI assistant like ChatGPT can create a link that opens Mapp and starts building an app.">
+  <meta name="description" content="Deep links for Mapp. Any website, chat or AI assistant like ChatGPT can create a link that opens Mapp and starts building a tool.">
   <meta name="theme-color" content="#0d0a1f">
   <meta name="color-scheme" content="dark">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -52,20 +52,20 @@
   <main id="main" class="section">
     <div class="wrap doc">
       <h1>Open Mapp from anywhere</h1>
-      <p>Any website, message, QR code or AI assistant can link straight into Mapp. One tap opens the app and starts building, opens one of your apps, or joins a shared space.</p>
+      <p>Any website, message, QR code or AI assistant can link straight into Mapp. One tap opens the tool and starts building, opens one of your tools, or joins a shared space.</p>
 
       <h2>Link format</h2>
       <p>Use the web link. It opens Mapp when it is installed and a short page with install instructions when it is not.</p>
       <pre><code>https://mapp-site.digitalshift-ee.workers.dev/l/&lt;action&gt;?&lt;parameters&gt;</code></pre>
-      <p>Inside apps that support custom schemes you can also use <code>mapp://&lt;action&gt;?&lt;parameters&gt;</code>. Encode parameter values with <code>encodeURIComponent</code>.</p>
+      <p>Inside tools that support custom schemes you can also use <code>mapp://&lt;action&gt;?&lt;parameters&gt;</code>. Encode parameter values with <code>encodeURIComponent</code>.</p>
 
       <table class="table">
         <thead><tr><th>Action</th><th>Parameters</th><th>What happens</th></tr></thead>
         <tbody>
-          <tr><td><code>build</code></td><td><code>prompt</code> (required, up to 4000 chars)<br><code>name</code> (optional)</td><td>Opens Mapp and immediately starts building a new app from the prompt.</td></tr>
-          <tr><td><code>open</code></td><td><code>app</code>: app name or id</td><td>Opens one of the user's apps.</td></tr>
-          <tr><td><code>edit</code></td><td><code>app</code>, <code>prompt</code> (optional)</td><td>Opens the app with the editor and the change typed in. The user reviews it and taps send.</td></tr>
-          <tr><td><code>join</code></td><td><code>code</code>: invite code</td><td>Joins a shared space, then offers to build an app on it.</td></tr>
+          <tr><td><code>build</code></td><td><code>prompt</code> (required, up to 4000 chars)<br><code>name</code> (optional)</td><td>Opens Mapp and immediately starts building a new tool from the prompt.</td></tr>
+          <tr><td><code>open</code></td><td><code>app</code>: tool name or id</td><td>Opens one of the user's tools.</td></tr>
+          <tr><td><code>edit</code></td><td><code>app</code>, <code>prompt</code> (optional)</td><td>Opens the tool with the editor and the change typed in. The user reviews it and taps send.</td></tr>
+          <tr><td><code>join</code></td><td><code>code</code>: invite code</td><td>Joins a shared space, then offers to build a tool on it.</td></tr>
           <tr><td><code>home</code></td><td>none</td><td>Opens the Mapp home screen.</td></tr>
         </tbody>
       </table>
@@ -81,9 +81,9 @@ mapp://build?prompt=A%20compass%20that%20points%20to%20home</code></pre>
       <form class="builder" id="builder" onsubmit="return false">
         <label>Action
           <select id="action">
-            <option value="build">build: start a new app</option>
-            <option value="open">open: open an app</option>
-            <option value="edit">edit: change an app</option>
+            <option value="build">build: start a new tool</option>
+            <option value="open">open: open a tool</option>
+            <option value="edit">edit: change a tool</option>
             <option value="join">join: join a shared space</option>
           </select>
         </label>
@@ -96,12 +96,12 @@ mapp://build?prompt=A%20compass%20that%20points%20to%20home</code></pre>
 
       <h2>Let ChatGPT make links</h2>
       <p>Paste this into ChatGPT (or any assistant). It will answer with links that open Mapp and build what it suggests.</p>
-      <pre><code>When you suggest an app idea I could use, also give me a Mapp link that builds it:
-https://mapp-site.digitalshift-ee.workers.dev/l/build?prompt=&lt;URL-encoded description of the app&gt;
+      <pre><code>When you suggest a tool idea I could use, also give me a Mapp link that builds it:
+https://mapp-site.digitalshift-ee.workers.dev/l/build?prompt=&lt;URL-encoded description of the tool&gt;
 Write the description as a short, complete brief: what it does, the main screens and what data it keeps.</code></pre>
 
       <h2>Safety</h2>
-      <p class="note">A <code>build</code> link starts right away, but a request that comes from a link can only create a new app. It cannot read or change the user's other apps, their cloud data, shared spaces or server functions, so a link written by someone else cannot reach personal data. <code>edit</code> links only fill in the request; the user decides to send it. The user always needs to be signed in to their own ChatGPT account, and every build counts against their own plan.</p>
+      <p class="note">A <code>build</code> link starts right away, but a request that comes from a link can only create a new app. It cannot read or change the user's other tools, their cloud data, shared spaces or server functions, so a link written by someone else cannot reach personal data. <code>edit</code> links only fill in the request; the user decides to send it. The user always needs to be signed in to their own ChatGPT account, and every build counts against their own plan.</p>
     </div>
   </main>
 
@@ -121,10 +121,10 @@ Write the description as a short, complete brief: what it does, the main screens
   <script>
     const base = 'https://mapp-site.digitalshift-ee.workers.dev/l/';
     const $ = (id) => document.getElementById(id);
-    const fields = { build: ['prompt', 'name'], open: ['app'], edit: ['app', 'prompt'], join: ['code'] };
+    const fields = { build: ['prompt', 'name'], open: ['tool'], edit: ['tool', 'prompt'], join: ['code'] };
     function update() {
       const action = $('action').value;
-      for (const f of ['prompt', 'name', 'app', 'code']) $('f-' + f).hidden = !fields[action].includes(f);
+      for (const f of ['prompt', 'name', 'tool', 'code']) $('f-' + f).hidden = !fields[action].includes(f);
       const params = new URLSearchParams();
       for (const f of fields[action]) if ($(f).value.trim()) params.set(f, $(f).value.trim());
       $('result').textContent = base + action + (params.toString() ? '?' + params.toString().replace(/\+/g, '%20') : '');

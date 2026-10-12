@@ -69,7 +69,7 @@ export class Shell {
   private frameLoaded: Promise<void> = Promise.resolve();
 
   private messagesEl = h('div', { class: 'messages' });
-  private input = h('textarea', { rows: 1, placeholder: 'Describe an app or a change…', enterkeyhint: 'send' });
+  private input = h('textarea', { rows: 1, placeholder: 'Describe a tool or a change…', enterkeyhint: 'send' });
   private sendBtn = h('button', { class: 'send', 'aria-label': 'Send' }, icon('send'));
   private sheetTitle = h('div', { class: 'sheet-title' });
   private newChatBtn = h('button', { class: 'chip icon-only', 'aria-label': 'New chat' }, icon('compose'));
@@ -163,7 +163,7 @@ export class Shell {
     for (const app of apps) grid.append(this.appIcon(app));
     grid.append(h('button', { class: 'app-icon new', 'aria-label': 'New app', onclick: () => this.openChat(null) },
       h('span', { class: 'tile' }, icon('plus')),
-      h('span', { class: 'label' }, 'New App')));
+      h('span', { class: 'label' }, 'New Tool')));
 
     this.home.replaceChildren(
       h('header', { class: 'home-header' },
@@ -172,12 +172,12 @@ export class Shell {
       grid,
       apps.length < 4
         ? h('p', { class: 'footnote home-note' }, apps.length
-          ? 'Tap to open, hold for options. In any app, pinch with three fingers to come back.'
-          : 'Describe an app below and it appears here.')
+          ? 'Tap to open, hold for options. In any tool, pinch with three fingers to come back.'
+          : 'Describe a tool below and it appears here.')
         : '',
       h('div', { class: 'composer-bar' },
         h('button', { class: 'composer-pill', onclick: () => this.openChat(null) },
-          icon('sparkles'), h('span', {}, 'Describe a new app'))),
+          icon('sparkles'), h('span', {}, 'Describe a new tool'))),
     );
   }
 
@@ -218,7 +218,7 @@ export class Shell {
           h('div', { class: 'action-text' }, h('strong', {}, app.name), h('span', { class: 'footnote' }, app.description || 'Your app'))),
         h('button', { class: 'row', onclick: () => { close(); void this.openApp(app.id); } }, h('span', { class: 'row-title' }, 'Open'), icon('chevron', 'icon row-icon')),
         h('button', { class: 'row', onclick: () => { close(); void this.openApp(app.id).then(() => this.openChat(app.id)); } }, h('span', { class: 'row-title' }, 'Edit with AI'), icon('pencil', 'icon row-icon')),
-        h('button', { class: 'row danger', onclick: () => { close(); this.confirmDelete(app); } }, h('span', { class: 'row-title' }, 'Delete App'), icon('trash', 'icon row-icon'))),
+        h('button', { class: 'row danger', onclick: () => { close(); this.confirmDelete(app); } }, h('span', { class: 'row-title' }, 'Delete Tool'), icon('trash', 'icon row-icon'))),
       h('div', { class: 'group' }, h('button', { class: 'row center strong', onclick: close }, 'Cancel')),
     ], 'action');
   }
@@ -228,12 +228,12 @@ export class Shell {
       h('div', { class: 'group' },
         h('div', { class: 'action-message' },
           h('strong', {}, `Delete ${app.name}?`),
-          h('span', { class: 'footnote' }, 'The app and its data are removed from this iPhone. This cannot be undone.')),
+          h('span', { class: 'footnote' }, 'The tool and its data are removed from this iPhone. This cannot be undone.')),
         h('button', { class: 'row center danger', onclick: async () => {
           close();
           if (this.currentAppId === app.id) this.goHome();
           await appStore.delete(app.id);
-        } }, 'Delete App')),
+        } }, 'Delete Tool')),
       h('div', { class: 'group' }, h('button', { class: 'row center strong', onclick: close }, 'Cancel')),
     ], 'action');
   }
@@ -354,7 +354,7 @@ export class Shell {
         const wanted = link.app.toLowerCase();
         const app = appStore.list().find((a) => a.id === link.app || a.name.toLowerCase() === wanted);
         if (!app) {
-          this.toast(`No app called "${link.app}"`);
+          this.toast(`No tool called "${link.app}"`);
           return;
         }
         await this.openApp(app.id);
@@ -370,7 +370,7 @@ export class Shell {
         this.goHome();
         this.openChat(null);
         await this.loadConversation(HOME_CHAT);
-        const prompt = link.name ? `${link.prompt}\n\nName the app "${link.name}".` : link.prompt;
+        const prompt = link.name ? `${link.prompt}\n\nName the tool "${link.name}".` : link.prompt;
         this.input.value = '';
         void this.run(prompt, false, true);
         return;
@@ -383,7 +383,7 @@ export class Shell {
       const space = await cloud.joinSpace(code, memberName());
       this.goHome();
       this.toast(`Joined ${space.name}`);
-      this.openChat(null, `Build me an app for the shared space "${space.name}" (${space.spaceId})`);
+      this.openChat(null, `Build me a tool for the shared space "${space.name}" (${space.spaceId})`);
     } catch (error) {
       this.toast(error instanceof Error ? error.message : 'Could not join');
     }
@@ -419,7 +419,7 @@ export class Shell {
       h('button', { class: 'switch-btn', onclick: () => this.goHome() }, icon('home'), h('span', {}, 'Home')),
       current
         ? h('button', { class: 'switch-btn accent', onclick: () => { this.closeSwitcher(); this.openChat(current.id); } }, icon('pencil'), h('span', {}, 'Edit'))
-        : h('button', { class: 'switch-btn accent', onclick: () => { this.closeSwitcher(); this.openChat(null); } }, icon('plus'), h('span', {}, 'New App')),
+        : h('button', { class: 'switch-btn accent', onclick: () => { this.closeSwitcher(); this.openChat(null); } }, icon('plus'), h('span', {}, 'New Tool')),
       current
         ? h('button', { class: 'switch-btn', onclick: () => this.closeSwitcher() }, icon('back'), h('span', {}, 'Back'))
         : null,
@@ -431,14 +431,14 @@ export class Shell {
         h('span', { class: 'label' }, app.name)));
     }
     strip.append(h('button', { class: 'app-icon new', onclick: () => { this.goHome(); this.openChat(null); } },
-      h('span', { class: 'tile' }, icon('plus')), h('span', { class: 'label' }, 'New App')));
+      h('span', { class: 'tile' }, icon('plus')), h('span', { class: 'label' }, 'New Tool')));
 
     this.switcher.replaceChildren(
       h('div', { class: 'switch-backdrop', onclick: () => current ? this.closeSwitcher() : undefined }),
       h('div', { class: 'switch-top' }, h('div', { class: 'switch-name' }, current ? current.name : 'Mapp')),
       h('div', { class: 'switch-bottom' },
         actions,
-        others.length ? h('div', { class: 'switch-label' }, 'Other Apps') : null,
+        others.length ? h('div', { class: 'switch-label' }, 'Other Tools') : null,
         strip),
     );
     this.stage.onclick = () => {
@@ -603,7 +603,7 @@ export class Shell {
 
   private updateChrome(): void {
     const app = this.currentAppId ? appStore.get(this.currentAppId) : undefined;
-    this.sheetTitle.replaceChildren(app ? app.name : 'New App');
+    this.sheetTitle.replaceChildren(app ? app.name : 'New Tool');
     this.undoBtn.classList.toggle('hidden', !app);
     const sheetOpen = this.sheetOpen;
     this.bubble.classList.toggle('hidden', !(app && this.editing && !sheetOpen));
@@ -636,7 +636,7 @@ export class Shell {
         : SUGGESTIONS;
       this.messagesEl.append(
         h('div', { class: 'empty-chat' },
-          h('p', { class: 'empty-lead' }, app ? `What should change in ${app.name}?` : 'Describe the app you want. Mapp builds it on this iPhone.'),
+          h('p', { class: 'empty-lead' }, app ? `What should change in ${app.name}?` : 'Describe the tool you want. Mapp makes it on this iPhone.'),
           h('div', { class: 'section-label' }, app ? 'Try' : 'Ideas'),
           h('div', { class: 'group ideas' }, ...ideas.map((idea) =>
             h('button', { class: 'row idea', onclick: () => { this.input.value = idea; this.submit(); } },
@@ -655,7 +655,7 @@ export class Shell {
     if (!app) {
       return h('div', { class: 'app-card gone' }, h('span', { class: 'app-card-sub' }, 'This app was deleted.'));
     }
-    const sub = card.kind === 'created' ? `New app · version ${card.version}` : `Updated · version ${card.version}`;
+    const sub = card.kind === 'created' ? `New tool · version ${card.version}` : `Updated · version ${card.version}`;
     const open = h('button', { class: 'app-card-open' }, 'Open');
     open.addEventListener('click', async () => {
       haptic();
@@ -752,7 +752,7 @@ export class Shell {
       const name = h('input', { class: 'card-input', value: suggestedName, autocapitalize: 'characters', spellcheck: 'false' });
       return [
         h('h2', {}, 'This looks like a secret'),
-        h('p', { class: 'muted' }, 'Keys and passwords should not go in the chat. Save it securely and your apps can use it without the AI ever seeing it.'),
+        h('p', { class: 'muted' }, 'Keys and passwords should not go in the chat. Save it securely and your tools can use it without the AI ever seeing it.'),
         h('label', { class: 'field-label' }, 'Save as', name),
         h('button', { class: 'btn mono', onclick: async () => {
           const secretName = normalizeSecretName(name.value) || suggestedName;
@@ -814,7 +814,7 @@ export class Shell {
       await appStore.writeChat(conversation.key, conversation.messages);
       await appStore.writeJob(conversation.key, { prompt: text, input: [], answer: '', savedAt: Date.now(), restricted: fromLink });
       if (fromLink) {
-        this.messagesEl.append(h('div', { class: 'msg assistant note' }, 'Started from a link. This request can only create a new app.'));
+        this.messagesEl.append(h('div', { class: 'msg assistant note' }, 'Started from a link. This request can only create a new tool.'));
       }
     }
     const activity = new Activity();
@@ -910,7 +910,7 @@ export class Shell {
             this.scrollMessages();
           },
           onToolProgress: (name, chars) => {
-            const what = name === 'create_app' || name === 'write_app' ? 'Writing the app' : name === 'edit_app' ? 'Writing changes' : name === 'deploy_function' ? 'Writing the function' : 'Preparing';
+            const what = name === 'create_app' || name === 'write_app' ? 'Writing the tool' : name === 'edit_app' ? 'Writing changes' : name === 'deploy_function' ? 'Writing the function' : 'Preparing';
             activity.update(`${what}${chars > 1024 ? ` · ${(chars / 1024).toFixed(1)} KB` : '…'}`);
           },
           onPhase: (phase, detail) => {
@@ -973,7 +973,7 @@ export class Shell {
         const app = appStore.get(appId);
         if (!app) continue;
         const card = { appId, version: app.version, kind };
-        conversation.messages.push({ role: 'assistant', content: `${kind === 'created' ? 'Created' : 'Updated'} app "${app.name}" (version ${app.version}).`, card });
+        conversation.messages.push({ role: 'assistant', content: `${kind === 'created' ? 'Created' : 'Updated'} tool "${app.name}" (version ${app.version}).`, card });
         this.messagesEl.insertBefore(this.appCard(card), status);
       }
       haptic(ImpactStyle.Medium);
@@ -1082,7 +1082,7 @@ export class Shell {
         h('div', { class: 'signin' },
           icon('logo', 'modal-logo'),
           h('h2', {}, 'Connect ChatGPT'),
-          h('p', { class: 'secondary-text' }, 'Mapp builds your apps with your own ChatGPT plan. If you are already signed in to ChatGPT in Safari, it is one tap, and your saved passwords and passkeys work. No Mapp account.'),
+          h('p', { class: 'secondary-text' }, 'Mapp makes your tools with your own ChatGPT plan. If you are already signed in to ChatGPT in Safari, it is one tap, and your saved passwords and passkeys work. No Mapp account.'),
           btn,
           error,
           h('button', { class: 'btn plain', onclick: close }, 'Not Now'),
@@ -1099,7 +1099,7 @@ export class Shell {
         void CapacitorUpdater.current().then((c) => {
           // The built-in bundle reports the native version as its "version"; its id is what tells it apart.
           const builtin = c.bundle.id === 'builtin';
-          version.textContent = builtin ? `App ${c.native} · built-in code` : `App ${c.native} · Live update ${c.bundle.version}`;
+          version.textContent = builtin ? `Mapp ${c.native} · built-in code` : `Mapp ${c.native} · Live update ${c.bundle.version}`;
           updateNote.textContent = builtin ? 'No live update installed yet.' : `Code ${__APP_VERSION__} delivered by Capgo.`;
         }).catch(() => undefined);
       }
@@ -1122,7 +1122,7 @@ export class Shell {
             h('div', { class: 'avatar big' }, email ? email[0].toUpperCase() : icon('person')),
             h('div', { class: 'row-body' },
               h('span', { class: 'row-title' }, email ?? 'Not connected'),
-              h('span', { class: 'row-sub' }, email ? 'ChatGPT account' : 'Connect ChatGPT to build apps'))),
+              h('span', { class: 'row-sub' }, email ? 'ChatGPT account' : 'Connect ChatGPT to make tools'))),
           email
             ? h('button', { class: 'row danger', onclick: async () => { await session.signOut(); await cloud.signOut(); close(); this.toast('Signed out'); } }, h('span', { class: 'row-title' }, 'Sign Out'))
             : h('button', { class: 'row accent', onclick: () => { close(); this.showSignIn(); } }, h('span', { class: 'row-title' }, 'Connect ChatGPT'))),
@@ -1134,11 +1134,11 @@ export class Shell {
               h('div', { class: 'row-body' }, h('span', { class: 'row-title' }, sec.label), h('span', { class: 'row-sub' }, sec.name + (sec.username ? ` · ${sec.username}` : ''))),
               h('button', { class: 'text-btn danger', 'aria-label': `Delete ${sec.name}`, onclick: async () => { await deleteSecret(sec.name); close(); this.toast(`Deleted ${sec.name}`); } }, 'Delete')))
             : [h('div', { class: 'row' }, h('span', { class: 'row-sub' }, 'No saved keys or passwords yet.'))])),
-        h('p', { class: 'group-footer' }, 'Stored in the iOS Keychain. The AI never sees them; your apps use them when they call their service.'),
+        h('p', { class: 'group-footer' }, 'Stored in the iOS Keychain. The AI never sees them; your tools use them when they call their service.'),
         h('div', { class: 'section-label' }, 'Gestures'),
         h('div', { class: 'group' },
           h('button', { class: 'row', onclick: () => { close(); this.showOnboarding(); } }, h('span', { class: 'row-title' }, 'Show the Tour Again'), icon('chevron', 'icon row-icon'))),
-        h('p', { class: 'group-footer' }, 'In any app, pinch with three fingers to open the switcher: Home, Edit, or another app. Spread three fingers to go back.'),
+        h('p', { class: 'group-footer' }, 'In any tool, pinch with three fingers to open the switcher: Home, Edit, or another tool. Spread three fingers to go back.'),
         h('div', { class: 'section-label' }, 'About'),
         h('div', { class: 'group' },
           link('Privacy Policy', APP_LINKS.privacy),
@@ -1197,7 +1197,7 @@ export class Shell {
     if (this.running) return;
     this.showModal((close) => [
       h('h2', {}, 'Update ready'),
-      h('p', { class: 'muted' }, `Mapp ${version} is downloaded. Restart now to use it; your apps and chats stay.`),
+      h('p', { class: 'muted' }, `Mapp ${version} is downloaded. Restart now to use it; your tools and chats stay.`),
       h('button', { class: 'btn mono', onclick: () => { close(); void CapacitorUpdater.set({ id }); } }, 'Restart now'),
       h('button', { class: 'btn plain', onclick: close }, 'Later'),
     ]);
@@ -1211,16 +1211,16 @@ export class Shell {
 }
 
 function toolLabel(name: string, args: Record<string, unknown>): string {
-  const appName = (id: unknown) => appStore.get(String(id))?.name ?? 'the app';
+  const appName = (id: unknown) => appStore.get(String(id))?.name ?? 'the tool';
   switch (name) {
-    case 'create_app': return `Installing ${String(args.name ?? 'your app')} and checking it runs`;
+    case 'create_app': return `Installing ${String(args.name ?? 'your tool')} and checking it runs`;
     case 'edit_app': return `Applying ${Array.isArray(args.edits) ? args.edits.length : ''} changes to ${appName(args.id)}`.replace('  ', ' ');
     case 'write_app': return `Replacing ${appName(args.id)} and checking it runs`;
     case 'read_app': return `Reading the code of ${appName(args.id)}`;
     case 'open_app': return `Opening ${appName(args.id)}`;
-    case 'get_app_logs': return 'Checking the app for errors';
+    case 'get_app_logs': return 'Checking the tool for errors';
     case 'update_app_info': return 'Updating the icon and name';
-    case 'list_apps': return 'Looking at your apps';
+    case 'list_apps': return 'Looking at your tools';
     case 'read_skill': return `Reading Capgo skill: ${String(args.name ?? '')}`;
     case 'list_skills': return 'Checking Capgo skills';
     case 'list_cloud': return 'Looking at your cloud';
@@ -1241,11 +1241,11 @@ function friendlyError(message: string): string {
 /** Label while the model is writing a tool call, before it runs. */
 function beginLabel(name: string): string {
   switch (name) {
-    case 'create_app': return 'Writing the app';
-    case 'write_app': return 'Rewriting the app';
+    case 'create_app': return 'Writing the tool';
+    case 'write_app': return 'Rewriting the tool';
     case 'edit_app': return 'Writing changes';
     case 'deploy_function': return 'Writing the server function';
-    case 'read_app': return 'Reading the app';
+    case 'read_app': return 'Reading the tool';
     case 'read_skill':
     case 'list_skills': return 'Checking Capgo skills';
     default: return 'Preparing the next step';

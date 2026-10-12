@@ -56,7 +56,7 @@ const SLIDES: Slide[] = [
       h('div', { class: 'status' }, h('span', { class: 'dots' }), 'Building Groceries…'),
       mockApp('Groceries', [{ text: 'Milk', cls: 'r0' }, { text: 'Avocados', cls: 'r1' }, { text: 'Coffee beans', cls: 'r2' }])),
     title: 'Describe it',
-    body: 'Say what you need in plain words. A working app shows up on your home screen in seconds.',
+    body: 'Say what you need in plain words. A working tool shows up on your home screen in seconds.',
   },
   {
     art: () => h('div', { class: 'art art-edit' },
@@ -64,14 +64,14 @@ const SLIDES: Slide[] = [
       h('div', { class: 'msg user' }, 'Group items by aisle'),
       h('span', { class: 'fake-bubble' }, icon('sparkles'))),
     title: 'Change anything',
-    body: 'Tap the chat button inside an app to ask for changes. Undo takes you back at any time.',
+    body: 'Tap the chat button inside a tool to ask for changes. Undo takes you back at any time.',
   },
   {
     art: () => h('div', { class: 'art art-pinch practice-area' },
       h('div', { class: 'pinch-demo' }, h('span', { class: 'f f1' }), h('span', { class: 'f f2' }), h('span', { class: 'f f3' })),
       h('div', { class: 'practice-done' }, icon('check'))),
     title: 'Pinch with three fingers',
-    body: 'Inside any app, pinch three fingers together to open the switcher. Try it here.',
+    body: 'Inside any tool, pinch three fingers together to open the switcher. Try it here.',
     practice: true,
   },
   {
@@ -83,18 +83,18 @@ const SLIDES: Slide[] = [
         h('span', { class: 'pill' }, icon('back'), 'Back')),
       mockTiles(4)),
     title: 'Home, Edit, or switch',
-    body: 'The switcher takes you home, opens the editor, or jumps to another app. Spread three fingers to go back.',
+    body: 'The switcher takes you home, opens the editor, or jumps to another tool. Spread three fingers to go back.',
   },
   {
     art: () => h('div', { class: 'art art-private' },
       h('div', { class: 'lock-badge' }, icon('lock')),
       h('ul', { class: 'facts' },
-        h('li', {}, icon('check'), 'Apps and data stay on this iPhone'),
+        h('li', {}, icon('check'), 'Tools and data stay on this iPhone'),
         h('li', {}, icon('check'), 'Runs on your own ChatGPT plan'),
         h('li', {}, icon('check'), 'Sign in kept in the iOS Keychain'),
         h('li', {}, icon('check'), 'No ads, no tracking'))),
     title: 'Private by design',
-    body: 'There is no Mapp account. Connect ChatGPT to start building, or try the starter apps first.',
+    body: 'There is no Mapp account. Connect ChatGPT to start building, or try the starter tools first.',
   },
 ];
 
@@ -140,7 +140,7 @@ export function showOnboarding(root: HTMLElement): Promise<boolean> {
       const actions = last
         ? [
           h('button', { class: 'btn mono', onclick: () => finish(true) }, 'Connect ChatGPT'),
-          h('button', { class: 'btn plain', onclick: () => finish(false) }, 'Try the Starter Apps'),
+          h('button', { class: 'btn plain', onclick: () => finish(false) }, 'Try the Starter Tools'),
         ]
         : slide.practice
           ? [
