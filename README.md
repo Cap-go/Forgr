@@ -45,3 +45,16 @@ src/ui/*       Shell: home, stage, switcher, floating chat, onboarding
 src/skills/*   Capgo skills bundled for the model
 store/icon     1024 icon
 ```
+
+## Store assets
+
+`store/screenshots/{6.9,6.5}` (framed) and `store/video/mapp-app-preview.mp4`
+(886x1920, 30 fps) are uploaded to the 1.0 version in App Store Connect.
+Regenerate with the dev server on port 5181:
+
+```bash
+cd store/tools
+bun shoot-store.mjs      # raw 1320x2868 screens (store demo mode)
+bun frame-store.mjs      # framed 6.9" and 6.5" screenshots
+bun record-preview.mjs   # preview footage, then encode with ffmpeg (see git log)
+```

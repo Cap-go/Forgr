@@ -3,6 +3,7 @@ import type { AgentHooks } from '../ai/agent';
 import type { ToolContext } from '../ai/tools';
 import type { ChatMessage } from '../ai/types';
 import { appStore } from '../apps/store';
+import { compoundHtml } from './store-demo';
 
 const wait = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
 
@@ -48,6 +49,28 @@ export async function scriptedAgent(
   hooks: AgentHooks,
 ): Promise<string> {
   const ask = history[history.length - 1]?.content.toLowerCase() ?? '';
+  if (ask.includes('compound')) {
+    hooks.onPhase?.('connecting');
+    await wait(400);
+    hooks.onPhase?.('waiting');
+    for (const part of ['An interactive explainer: ', 'sliders for start amount, monthly saving, return and years, ', 'a chart of savings vs interest, ', 'and a live sentence explaining why it grows.']) {
+      hooks.onReasoning?.(part);
+      await wait(320);
+    }
+    hooks.onPhase?.('tool_begin', 'create_app');
+    for (let chars = 1200; chars <= 7200; chars += 1200) {
+      hooks.onToolProgress?.('create_app', chars);
+      await wait(200);
+    }
+    hooks.onToolStart('create_app', { name: 'Compound Interest' });
+    await wait(700);
+    const app = await appStore.create({ name: 'Compound Interest', emoji: '📈', color: '#5e5ce6', description: 'Compound interest explainer.', html: compoundHtml() });
+    await ctx.openApp(app.id);
+    hooks.onToolEnd('create_app', true, JSON.stringify({ ok: true, id: app.id }));
+    const answer = 'Here is **Compound Interest**: move the sliders and watch interest start earning interest.';
+    await stream(hooks, answer);
+    return answer;
+  }
   if (ask.includes('csv')) {
     hooks.onPhase?.('connecting');
     await wait(300);

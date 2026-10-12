@@ -26,6 +26,12 @@ if (demo) {
     shell.agent = scriptedAgent;
     await shell.init();
     session.demo('alex@example.com');
+    if (new URLSearchParams(location.search).get('demo') === 'store') {
+      const [{ STORE_TOOLS }, { appStore }] = await Promise.all([import('./ui/store-demo'), import('./apps/store')]);
+      if (!appStore.list().some((a) => a.name === 'Groceries')) {
+        for (const tool of STORE_TOOLS) await appStore.create(tool);
+      }
+    }
     (window as unknown as { __shell: Shell }).__shell = shell;
   });
 } else {

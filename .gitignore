@@ -13,3 +13,4 @@ ios/App/build/
 *.local
 store/tools/node_modules
 store/video/demo-raw.webm
+store/video/preview-raw.webm

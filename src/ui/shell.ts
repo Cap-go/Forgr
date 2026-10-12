@@ -531,7 +531,7 @@ export class Shell {
     if (this.conversation.key !== key && !this.running) void this.loadConversation(key);
     this.sheet.classList.toggle('full', !appId);
     this.sheetOpen = true;
-    if (!this.chatSheet.presented) this.chatSheet.present();
+    this.syncChatSheet();
     this.updateChrome();
     if (prompt) {
       this.input.value = prompt;
@@ -559,11 +559,26 @@ export class Shell {
   private collapseSheet(): void {
     this.input.blur();
     this.sheetOpen = false;
-    if (this.chatSheet.presented) this.chatSheet.dismiss();
+    this.syncChatSheet();
     this.updateChrome();
   }
 
   private sheetOpen = false;
+
+  /** Animation state of the chat sheet, from cap-sheet-travel-status-change. */
+  private chatTravel = 'idle';
+
+  /**
+   * Brings the chat sheet to the wanted state (sheetOpen). Calls made while it
+   * is animating are ignored or queued by the library, so act only when idle;
+   * the travel-status listener calls this again when the animation ends.
+   */
+  private syncChatSheet(): void {
+    if (this.chatTravel !== 'idle') return;
+    if (this.sheetOpen && !this.chatSheet.presented) this.chatSheet.present();
+    else if (!this.sheetOpen && this.chatSheet.presented) this.chatSheet.dismiss();
+  }
+
   private chatSheet = document.createElement('cap-sheet') as CapSheet;
 
   /**
@@ -592,6 +607,10 @@ export class Shell {
         this.input.blur();
         this.updateChrome();
       }
+    });
+    sheet.addEventListener('cap-sheet-travel-status-change', (event) => {
+      this.chatTravel = (event as CustomEvent<{ status: string }>).detail.status;
+      if (this.chatTravel === 'idle') window.setTimeout(() => this.syncChatSheet(), 0);
     });
     return sheet;
   }
