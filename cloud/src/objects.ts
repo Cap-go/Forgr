@@ -319,7 +319,7 @@ export class SharedSpace extends DurableObject<Env> {
   }
 }
 
-/** Failure reports from the app: request metadata only, newest 500 kept. */
+/** Failure reports from the app: request metadata only, newest 500 kept for at most 30 days. */
 export class Diagnostics extends DurableObject<Env> {
   private sql: SqlStorage;
 
@@ -332,6 +332,7 @@ export class Diagnostics extends DurableObject<Env> {
   add(body: string): void {
     this.sql.exec('INSERT INTO reports (at, body) VALUES (?, ?)', Date.now(), body);
     this.sql.exec('DELETE FROM reports WHERE id NOT IN (SELECT id FROM reports ORDER BY id DESC LIMIT 500)');
+    this.sql.exec('DELETE FROM reports WHERE at < ?', Date.now() - 30 * 86_400_000);
   }
 
   list(limit: number): Array<{ at: number; body: unknown }> {
