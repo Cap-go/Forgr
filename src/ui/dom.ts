@@ -1,3 +1,5 @@
+import logoUrl from '../assets/logo.png';
+
 type Child = Node | string | null | undefined | false;
 type Attrs = Record<string, string | number | boolean | EventListener | undefined>;
 
@@ -41,7 +43,7 @@ export function svg(markup: string): SVGElement {
 const stroke = 'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
 
 export const icons = {
-  logo: `<svg viewBox="0 0 1024 1024" aria-hidden="true"><rect width="1024" height="1024" rx="230" fill="#FF5A1F"/><path fill="#0B0B0B" d="M176 404 H848 V512 H692 V620 H800 V728 H312 V620 H420 V512 H312 Q216 500 176 404 Z"/><path fill="#FFFFFF" d="M640 120 C652 232 668 248 780 260 C668 272 652 288 640 400 C628 288 612 272 500 260 C612 248 628 232 640 120 Z"/></svg>`,
+  logo: `<svg viewBox="0 0 1024 1024" aria-hidden="true"><defs><clipPath id="flc"><rect width="1024" height="1024" rx="230"/></clipPath></defs><image href="${logoUrl}" width="1024" height="1024" clip-path="url(#flc)"/></svg>`,
   send: `<svg viewBox="0 0 24 24" ${stroke}><path d="M12 19V5M5 12l7-7 7 7"/></svg>`,
   globe: `<svg viewBox="0 0 24 24" ${stroke}><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>`,
   settings: `<svg viewBox="0 0 24 24" ${stroke}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>`,
