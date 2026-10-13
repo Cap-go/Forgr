@@ -1,5 +1,5 @@
 /**
- * Starter apps seeded on first launch so Mapp is useful before signing in.
+ * Starter apps seeded on first launch so Forgr is useful before signing in.
  * They rely on the design kit (src/apps/kit.ts) injected before their code.
  */
 export const STARTER_APPS = [

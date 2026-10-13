@@ -85,7 +85,7 @@ const TOOLS = [
   {
     type: 'function',
     name: 'list_cloud',
-    description: "List the user's Mapp Cloud functions (with public URLs), secret names and shared spaces (with descriptions of their data).",
+    description: "List the user's Forgr Cloud functions (with public URLs), secret names and shared spaces (with descriptions of their data).",
     parameters: obj({}),
   },
   {
@@ -326,7 +326,7 @@ const FORBIDDEN: Array<[RegExp, string]> = [
   [/\blocalStorage\b|\bsessionStorage\b|\bindexedDB\b|document\.cookie/, 'Browser storage is blocked in the sandbox: use mapp.storage.'],
   [/navigator\.geolocation/, 'navigator.geolocation does not work: use mapp.location.'],
   [/getUserMedia|<input[^>]+capture=/, 'Camera/microphone web APIs do not work: use the mapp camera/audio capabilities.'],
-  [/navigator\.vibrate/, 'navigator.vibrate does not work in Mapp tools: use mapp.haptics.'],
+  [/navigator\.vibrate/, 'navigator.vibrate does not work in Forgr tools: use mapp.haptics.'],
   [/\bnew Notification\(|Notification\.requestPermission/, 'Notification API does not work: use mapp.notifications.'],
   [/\bwindow\.open\(/, 'window.open is blocked: use mapp.app.openUrl.'],
   [/\b(alert|confirm|prompt)\(/, 'Avoid alert/confirm/prompt: use the kit sheet or inline UI.'],

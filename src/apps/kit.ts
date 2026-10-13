@@ -1,5 +1,5 @@
 /**
- * Mapp design kit: a tiny native-feeling stylesheet injected into every mini app
+ * Forgr design kit: a tiny native-feeling stylesheet injected into every mini app
  * before its own code, plus the reference the AI reads when building apps.
  * Safe areas come from the host as --safe-* px variables (env() does not work
  * inside the sandboxed iframe).
@@ -113,7 +113,7 @@ font-size:15px;font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.16);opacity:0;t
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 `.replace(/\n/g, '');
 
-export const KIT_DOC = `## Mapp design kit (already loaded, do not redefine it)
+export const KIT_DOC = `## Forgr design kit (already loaded, do not redefine it)
 Every app gets KIT_CSS before its code. Build with these classes and tokens so apps feel native in light and dark.
 Tokens: --m-bg --m-surface --m-surface-2 --m-fill --m-label --m-secondary --m-tertiary --m-separator --m-accent (= icon color) --m-accent-text (accent for text) --m-tint (tinted fill) --m-on-accent --m-danger --m-success --m-radius; spacing --m-1..--m-8 (4 8 12 16 20 24 32px).
 Safe areas are automatic: body is padded by the insets. With a .m-nav large title, put class="m-app" on body (the nav pads the top, body keeps the bottom inset). .m-bottom, .m-tabbar, .m-fab, .m-sheet and .m-toast pad themselves. Never hardcode 44px/34px status bar offsets; use var(--safe-top) / var(--safe-bottom) for any custom fixed element.
@@ -135,5 +135,5 @@ Design rules:
 - Emoji only when they are content (a mood, a category the user picked), never as decoration in titles or buttons.
 - Real empty states that say what to do next. No fake sample data unless the user asks for it.
 - Tap targets at least 44px. Inputs stay 16px+ so iOS does not zoom.
-- Never add a "Home" or "Back to Mapp" button: the three-finger pinch handles that.
+- Never add a "Home" or "Back to Forgr" button: the three-finger pinch handles that.
 - App-specific CSS is fine for layouts the kit lacks; use the tokens instead of hex colors so dark mode keeps working.`;

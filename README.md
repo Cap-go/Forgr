@@ -1,6 +1,6 @@
 <img src="assets/icon.svg" width="64" height="64" alt="">
 
-# Mapp
+# Forgr
 
 Personal app builder for iOS and Android (Capacitor 8 + Capgo). Sign in with ChatGPT, describe an app, and the AI builds it on your phone. Each user owns their apps locally.
 

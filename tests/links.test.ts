@@ -6,6 +6,7 @@ describe('parseLink', () => {
   test('custom scheme and universal links', () => {
     expect(parseLink('mapp://build?prompt=A%20tip%20calculator')).toEqual({ action: 'build', prompt: 'A tip calculator', name: undefined });
     expect(parseLink('https://mapp-site.digitalshift-ee.workers.dev/l/build?prompt=Plants&name=Leafy')).toEqual({ action: 'build', prompt: 'Plants', name: 'Leafy' });
+    expect(parseLink('https://forgr.ee/l/open?app=Habits')).toEqual({ action: 'open', app: 'Habits' });
     expect(parseLink('mapp://open?app=Habits')).toEqual({ action: 'open', app: 'Habits' });
     expect(parseLink('mapp://edit?app=Habits&prompt=dark')).toEqual({ action: 'edit', app: 'Habits', prompt: 'dark' });
     expect(parseLink('mapp://join?code=ABCD-EFGH-JKLM-NPQR')).toEqual({ action: 'join', code: 'ABCD-EFGH-JKLM-NPQR' });

@@ -32,7 +32,7 @@ export const biometric: CapabilityGroup = {
       signature: '(reason?) -> boolean',
       doc: 'false if cancelled/failed',
       run: async (args, ctx) => {
-        if (!ctx.native) throw new Error('Only available in the Mapp app');
+        if (!ctx.native) throw new Error('Only available in the Forgr app');
         const available = await NativeBiometric.isAvailable({ useFallback: true });
         if (!available.isAvailable) throw new Error('Face ID / passcode is not set up on this device');
         try {

@@ -34,7 +34,7 @@ function wrap<T>(fn: () => T): RpcResult<T> {
   }
 }
 
-/** One per Mapp user: private documents for every app and the list of spaces. */
+/** One per Forgr user: private documents for every app and the list of spaces. */
 export class UserSpace extends DurableObject<Env> {
   private sql: SqlStorage;
 

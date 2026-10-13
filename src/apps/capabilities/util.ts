@@ -5,7 +5,7 @@ import type { CapabilityContext } from './types';
 export const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 
 export function requireNative(ctx: CapabilityContext): void {
-  if (!ctx.native) throw new Error('Only available in the Mapp app');
+  if (!ctx.native) throw new Error('Only available in the Forgr app');
 }
 
 export function str(args: Record<string, unknown>, key: string, required = true): string {
@@ -48,7 +48,7 @@ export function time(args: Record<string, unknown>, key: string): number {
 }
 
 export function ensureGranted(state: string | undefined, what: string): void {
-  if (state !== 'granted' && state !== 'limited') throw new Error(`${what} permission denied. Allow it in Settings > Mapp.`);
+  if (state !== 'granted' && state !== 'limited') throw new Error(`${what} permission denied. Allow it in Settings > Forgr.`);
 }
 
 export function errorMessage(error: unknown): string {

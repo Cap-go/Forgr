@@ -20,7 +20,7 @@
     "OPENAI_ISSUER": "https://auth.openai.com",
     "OPENAI_JWKS_URL": "https://auth.openai.com/.well-known/jwks.json",
     "PUBLIC_URL": "https://mapp-cloud.digitalshift-ee.workers.dev",
-    "BETA_URL": "https://mapp-site.digitalshift-ee.workers.dev"
+    "BETA_URL": "https://forgr.ee"
   }
   // Secret: SESSION_SECRET (wrangler secret put SESSION_SECRET)
 }

@@ -1,6 +1,8 @@
 /** Deep links: mapp://<action>?… and https://<site>/l/<action>?… (universal links). */
 
-export const LINK_HOST = 'mapp-site.digitalshift-ee.workers.dev';
+export const LINK_HOST = 'forgr.ee';
+/** Hosts that open in the app; the old workers.dev site still serves links already shared. */
+const LINK_HOSTS = new Set([LINK_HOST, 'www.forgr.ee', 'mapp-site.digitalshift-ee.workers.dev']);
 
 export type LinkAction =
   | { action: 'build'; prompt: string; name?: string }
@@ -27,7 +29,7 @@ export function parseLink(url: string): LinkAction | null {
   if (parsed.protocol === 'mapp:') {
     // mapp://build?… parses with host "build"; mapp:build?… with pathname "build".
     action = (parsed.host || parsed.pathname.replace(/^\/+/, '')).split('/')[0];
-  } else if (parsed.protocol === 'https:' && parsed.host === LINK_HOST && parsed.pathname.startsWith('/l/')) {
+  } else if (parsed.protocol === 'https:' && LINK_HOSTS.has(parsed.host) && parsed.pathname.startsWith('/l/')) {
     action = parsed.pathname.slice(3).replace(/\.html$/, '').split('/')[0];
   } else {
     return null;
@@ -59,7 +61,7 @@ export function parseLink(url: string): LinkAction | null {
   }
 }
 
-/** Builds a shareable universal link (opens Mapp when installed, the website otherwise). */
+/** Builds a shareable universal link (opens Forgr when installed, the website otherwise). */
 export function buildLink(action: string, params: Record<string, string>): string {
   const query = new URLSearchParams(params).toString();
   return `https://${LINK_HOST}/l/${action}${query ? `?${query}` : ''}`;

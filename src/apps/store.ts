@@ -1,7 +1,7 @@
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import type { ChatMessage, ConversationItem } from '../ai/types';
 
-/** An agent run saved after each step so it can continue after iOS suspends or kills Mapp. */
+/** An agent run saved after each step so it can continue after iOS suspends or kills Forgr. */
 export interface PendingJob {
   prompt: string;
   input: ConversationItem[];

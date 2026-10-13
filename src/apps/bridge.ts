@@ -102,7 +102,7 @@ export class AppBridge {
 
   private async call(method: string, args: Record<string, unknown>): Promise<unknown> {
     const capability = findCapability(method);
-    if (!capability) throw new Error(`Unknown capability "${method}". Not available in Mapp.`);
+    if (!capability) throw new Error(`Unknown capability "${method}". Not available in Forgr.`);
     const safeArgs = args && typeof args === 'object' && !Array.isArray(args) ? args : {};
     return capability.run(safeArgs, this.ctx);
   }

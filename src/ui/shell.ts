@@ -57,7 +57,7 @@ export class Shell {
   private bridge: AppBridge | null = null;
   private switcher = h('div', { class: 'switcher hidden' });
   private sheet = h('cap-sheet-content', { class: 'chat-sheet' });
-  private bubble = h('button', { class: 'bubble hidden', 'aria-label': 'Open Mapp chat' }, icon('sparkles'));
+  private bubble = h('button', { class: 'bubble hidden', 'aria-label': 'Open Forgr chat' }, icon('sparkles'));
   private modalLayer = h('div', { class: 'modal-layer hidden' });
   private toastEl = h('div', { class: 'toast hidden' });
 
@@ -102,7 +102,7 @@ export class Shell {
     // The "New app" chat starts with its suggestions, even before any conversation exists.
     await this.loadConversation(HOME_CHAT);
 
-    // Tell the open mini app when Mapp leaves or returns to the screen.
+    // Tell the open mini app when Forgr leaves or returns to the screen.
     lifecycle.onChange((active) => {
       this.frame?.contentWindow?.postMessage({ __mapp: 'event', name: active ? 'app.resume' : 'app.pause', payload: { at: Date.now() } }, '*');
     });
@@ -168,7 +168,7 @@ export class Shell {
 
     this.home.replaceChildren(
       h('header', { class: 'home-header' },
-        h('h1', { class: 'large-title' }, 'Mapp'),
+        h('h1', { class: 'large-title' }, 'Forgr'),
         avatar),
       grid,
       apps.length < 4
@@ -436,7 +436,7 @@ export class Shell {
 
     this.switcher.replaceChildren(
       h('div', { class: 'switch-backdrop', onclick: () => current ? this.closeSwitcher() : undefined }),
-      h('div', { class: 'switch-top' }, h('div', { class: 'switch-name' }, current ? current.name : 'Mapp')),
+      h('div', { class: 'switch-top' }, h('div', { class: 'switch-name' }, current ? current.name : 'Forgr')),
       h('div', { class: 'switch-bottom' },
         actions,
         others.length ? h('div', { class: 'switch-label' }, 'Other Tools') : null,
@@ -642,7 +642,7 @@ export class Shell {
   /** A run stopped by iOS (app killed or suspended too long): offer to continue it. */
   private showInterrupted(prompt: string): void {
     this.messagesEl.append(h('div', { class: 'error-block' },
-      h('p', {}, 'This request was interrupted when Mapp left the screen.'),
+      h('p', {}, 'This request was interrupted when Forgr left the screen.'),
       h('button', { class: 'retry', onclick: () => { if (!this.running) void this.run(prompt, true); } }, icon('undo'), 'Continue')));
     this.scrollMessages();
   }
@@ -656,7 +656,7 @@ export class Shell {
         : SUGGESTIONS;
       this.messagesEl.append(
         h('div', { class: 'empty-chat' },
-          h('p', { class: 'empty-lead' }, app ? `What should change in ${app.name}?` : `Describe the tool you want. Mapp makes it on this ${DEVICE}.`),
+          h('p', { class: 'empty-lead' }, app ? `What should change in ${app.name}?` : `Describe the tool you want. Forgr makes it on this ${DEVICE}.`),
           h('div', { class: 'section-label' }, app ? 'Try' : 'Ideas'),
           h('div', { class: 'group ideas' }, ...ideas.map((idea) =>
             h('button', { class: 'row idea', onclick: () => { this.input.value = idea; this.submit(); } },
@@ -830,7 +830,7 @@ export class Shell {
     } else {
       conversation.messages.push({ role: 'user', content: text });
       this.messagesEl.append(this.bubbleFor('user', text));
-      // Saved now so the request survives iOS killing Mapp mid-run.
+      // Saved now so the request survives iOS killing Forgr mid-run.
       await appStore.writeChat(conversation.key, conversation.messages);
       await appStore.writeJob(conversation.key, { prompt: text, input: [], answer: '', savedAt: Date.now(), restricted: fromLink });
       if (fromLink) {
@@ -878,7 +878,7 @@ export class Shell {
             activity.step(`Waiting for ${spec.label}`);
             const card = secretCard({
               ...spec,
-              destination: spec.target === 'cloud' ? 'in your Mapp Cloud' : `in the ${SECURE_STORE}`,
+              destination: spec.target === 'cloud' ? 'in your Forgr Cloud' : `in the ${SECURE_STORE}`,
             }, async (value, username) => {
               if (spec.target === 'cloud') await cloud.call('PUT', `/v1/secrets/${spec.name}`, { value });
               else await saveSecret({ name: spec.name, label: spec.label, kind: spec.kind, username: username ?? spec.username }, value);
@@ -944,7 +944,7 @@ export class Shell {
             this.scrollMessages();
           },
           onPaused: () => {
-            activity.step('Paused while Mapp is in the background');
+            activity.step('Paused while Forgr is in the background');
           },
           onCheckpoint: (input, answer) => {
             if (job.key !== conversation.key) {
@@ -1102,7 +1102,7 @@ export class Shell {
         h('div', { class: 'signin' },
           icon('logo', 'modal-logo'),
           h('h2', {}, 'Connect ChatGPT'),
-          h('p', { class: 'secondary-text' }, `Mapp makes your tools with your own ChatGPT plan. If you are already signed in to ChatGPT in ${BROWSER}, it is one tap, and your saved passwords and passkeys work. No Mapp account.`),
+          h('p', { class: 'secondary-text' }, `Forgr makes your tools with your own ChatGPT plan. If you are already signed in to ChatGPT in ${BROWSER}, it is one tap, and your saved passwords and passkeys work. No Forgr account.`),
           btn,
           error,
           h('button', { class: 'btn plain', onclick: close }, 'Not Now'),
@@ -1119,7 +1119,7 @@ export class Shell {
         void CapacitorUpdater.current().then((c) => {
           // The built-in bundle reports the native version as its "version"; its id is what tells it apart.
           const builtin = c.bundle.id === 'builtin';
-          version.textContent = builtin ? `Mapp ${c.native} · built-in code` : `Mapp ${c.native} · Live update ${c.bundle.version}`;
+          version.textContent = builtin ? `Forgr ${c.native} · built-in code` : `Forgr ${c.native} · Live update ${c.bundle.version}`;
           updateNote.textContent = builtin ? 'No live update installed yet.' : `Code ${__APP_VERSION__} delivered by Capgo.`;
         }).catch(() => undefined);
       }
@@ -1217,7 +1217,7 @@ export class Shell {
     if (this.running) return;
     this.showModal((close) => [
       h('h2', {}, 'Update ready'),
-      h('p', { class: 'muted' }, `Mapp ${version} is downloaded. Restart now to use it; your tools and chats stay.`),
+      h('p', { class: 'muted' }, `Forgr ${version} is downloaded. Restart now to use it; your tools and chats stay.`),
       h('button', { class: 'btn mono', onclick: () => { close(); void CapacitorUpdater.set({ id }); } }, 'Restart now'),
       h('button', { class: 'btn plain', onclick: close }, 'Later'),
     ]);

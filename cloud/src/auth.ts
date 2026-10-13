@@ -1,4 +1,4 @@
-/** Identity: a ChatGPT id_token is exchanged once for a Mapp session token. */
+/** Identity: a ChatGPT id_token is exchanged once for a Forgr session token. */
 
 export interface Jwk {
   kid: string;
@@ -76,7 +76,7 @@ export async function verifyIdToken(token: string, issuer: string, keys: Jwk[], 
   return claims;
 }
 
-/** Stable, opaque Mapp user id derived from the OpenAI subject. */
+/** Stable, opaque Forgr user id derived from the OpenAI subject. */
 export async function userIdFor(iss: string, sub: string): Promise<string> {
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(`${iss}|${sub}`)));
   return Array.from(digest.slice(0, 12), (b) => b.toString(16).padStart(2, '0')).join('');

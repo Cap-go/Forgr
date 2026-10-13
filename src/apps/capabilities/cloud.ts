@@ -17,7 +17,7 @@ const appDocs = (ctx: CapabilityContext, op: DocOp) => cloud.appDocs(ctx.app.id,
 
 export const cloudGroup: CapabilityGroup = {
   group: 'cloud',
-  plugin: 'Mapp Cloud (Cloudflare Durable Objects)',
+  plugin: 'Forgr Cloud (Cloudflare Durable Objects)',
   summary: "The user's private online database, per app. Survives reinstalls and syncs across the user's devices. Needs the user signed in; use mapp.storage for offline-only data.",
   capabilities: [
     {
@@ -53,8 +53,8 @@ const spaceId = (args: Record<string, unknown>) => str(args, 'spaceId').toUpperC
 
 export const spacesGroup: CapabilityGroup = {
   group: 'spaces',
-  plugin: 'Mapp Cloud shared spaces',
-  summary: 'Share data with other people who use Mapp. A space is an isolated shared database; the owner shares an invite code/link, members join and every member\'s apps read and write it, with live updates. Put the data format in the description so other people\'s apps can use it.',
+  plugin: 'Forgr Cloud shared spaces',
+  summary: 'Share data with other people who use Forgr. A space is an isolated shared database; the owner shares an invite code/link, members join and every member\'s apps read and write it, with live updates. Put the data format in the description so other people\'s apps can use it.',
   capabilities: [
     {
       name: 'spaces.create',
@@ -92,7 +92,7 @@ export const spacesGroup: CapabilityGroup = {
       run: async (args, ctx) => {
         const invite = await cloud.invite(spaceId(args));
         if (ctx.native) {
-          await Share.share({ title: 'Join my Mapp space', text: `Join my space on Mapp with code ${invite.code}`, url: invite.url }).catch(() => undefined);
+          await Share.share({ title: 'Join my Forgr space', text: `Join my space on Forgr with code ${invite.code}`, url: invite.url }).catch(() => undefined);
         }
         return invite;
       },
@@ -175,7 +175,7 @@ export const spacesGroup: CapabilityGroup = {
 
 export const functionsGroup: CapabilityGroup = {
   group: 'functions',
-  plugin: 'Mapp Cloud functions (sandboxed Cloudflare Workers)',
+  plugin: 'Forgr Cloud functions (sandboxed Cloudflare Workers)',
   summary: "Call the user's own server functions deployed with the deploy_function tool (scheduled logic, API keys kept server side, webhooks, data shared by URL).",
   capabilities: [
     {

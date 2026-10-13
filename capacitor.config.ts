@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.capgo.mapp',
-  appName: 'Mapp',
+  appName: 'Forgr',
   webDir: 'dist',
   backgroundColor: '#0d0a1f',
   server: {

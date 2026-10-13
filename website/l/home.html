@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Open in Mapp</title>
+  <title>Open in Forgr</title>
   <meta name="robots" content="noindex">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <style>
@@ -22,11 +22,11 @@
 <body>
   <div class="card">
     <img src="/assets/icon-1024.png" alt="">
-    <h1 id="title">Open in Mapp</h1>
-    <p id="lead">This link opens the Mapp app on iPhone.</p>
+    <h1 id="title">Open in Forgr</h1>
+    <p id="lead">This link opens the Forgr app on iPhone.</p>
     <blockquote id="what" hidden></blockquote>
-    <a class="btn" id="open" href="mapp://">Open Mapp</a>
-    <a class="plain" href="/#beta">Don't have Mapp yet? Join the beta</a>
+    <a class="btn" id="open" href="mapp://">Open Forgr</a>
+    <a class="plain" href="/#beta">Don't have Forgr yet? Join the beta</a>
   </div>
   <script>
     const action = location.pathname.replace(/^\/l\//, '').replace(/\.html$/, '').split('/')[0] || 'home';
@@ -35,7 +35,7 @@
     document.getElementById('open').href = deep;
     const what = document.getElementById('what');
     const texts = {
-      build: ['Build this app', 'Mapp will start building:', q.get('prompt')],
+      build: ['Build this app', 'Forgr will start building:', q.get('prompt')],
       open: ['Open an app', 'Opens your app:', q.get('app')],
       edit: ['Change an app', 'Opens ' + (q.get('app') || 'your app') + ' with this change ready to send:', q.get('prompt')],
       join: ['Join a shared space', 'Invite code:', q.get('code')],

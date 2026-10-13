@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Mapp</string>
-    <string name="title_activity_main">Mapp</string>
+    <string name="app_name">Forgr</string>
+    <string name="title_activity_main">Forgr</string>
     <string name="package_name">app.capgo.mapp</string>
     <string name="custom_url_scheme">app.capgo.mapp</string>
 </resources>

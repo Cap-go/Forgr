@@ -3,7 +3,7 @@ import Capacitor
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
-    /// Extra time iOS grants after the user leaves Mapp (about 30 s), so an
+    /// Extra time iOS grants after the user leaves Forgr (about 30 s), so an
     /// AI request that is almost done can finish instead of being dropped.
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
 

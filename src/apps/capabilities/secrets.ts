@@ -9,8 +9,8 @@ function guard(ctx: CapabilityContext): void {
 
 export const secrets: CapabilityGroup = {
   group: 'secrets',
-  plugin: 'Secure device storage (Mapp vault)',
-  summary: "The user's saved API keys and passwords. Prefer {{secret:NAME}} placeholders in mapp.http.fetch headers/body: Mapp fills them natively and your JS never holds the value.",
+  plugin: 'Secure device storage (Forgr vault)',
+  summary: "The user's saved API keys and passwords. Prefer {{secret:NAME}} placeholders in mapp.http.fetch headers/body: Forgr fills them natively and your JS never holds the value.",
   capabilities: [
     {
       name: 'secrets.has',
@@ -33,7 +33,7 @@ export const secrets: CapabilityGroup = {
       name: 'secrets.request',
       params: ['name', 'options'],
       signature: '(name, { label, kind?: "api_key"|"password"|"token"|"text", username? }?) -> { saved: boolean }',
-      doc: 'Shows Mapp\'s secure entry sheet over the app (AutoFill for passwords). Use when a needed secret is missing.',
+      doc: 'Shows Forgr\'s secure entry sheet over the app (AutoFill for passwords). Use when a needed secret is missing.',
       run: async (args, ctx) => {
         guard(ctx);
         const options = obj(args, 'options');

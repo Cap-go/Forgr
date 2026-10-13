@@ -1,5 +1,13 @@
 {
   "name": "mapp-site",
+  "account_id": "9ee3d7479a3c359681e3fab2c8cb22c0",
   "compatibility_date": "2026-10-01",
-  "assets": { "directory": "." }
+  "assets": { "directory": "." },
+  "workers_dev": true,
+  "preview_urls": true,
+  // forgr.ee is the site; mapp-site.digitalshift-ee.workers.dev stays up for links already shared.
+  "routes": [
+    { "pattern": "forgr.ee", "custom_domain": true },
+    { "pattern": "www.forgr.ee", "custom_domain": true }
+  ]
 }

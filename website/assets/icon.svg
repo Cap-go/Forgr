@@ -1,23 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#7c5cff"/>
-      <stop offset="0.55" stop-color="#4b2bd6"/>
-      <stop offset="1" stop-color="#1b1145"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#2b1a11"/>
+      <stop offset="1" stop-color="#0d0907"/>
     </linearGradient>
+    <radialGradient id="heat" cx="0.52" cy="0.46" r="0.5">
+      <stop offset="0" stop-color="#ff6a1f" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#ff6a1f" stop-opacity="0"/>
+    </radialGradient>
     <linearGradient id="spark" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffe07a"/>
-      <stop offset="1" stop-color="#ff7a59"/>
+      <stop offset="0" stop-color="#fff1bf"/>
+      <stop offset="1" stop-color="#ff8a3a"/>
     </linearGradient>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="26" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
-  <rect width="1024" height="1024" fill="url(#bg)"/>
-  <rect x="232" y="232" width="252" height="252" rx="64" fill="#ffffff"/>
-  <rect x="232" y="540" width="252" height="252" rx="64" fill="#ffffff" opacity="0.55"/>
-  <rect x="540" y="540" width="252" height="252" rx="64" fill="#ffffff" opacity="0.8"/>
-  <path filter="url(#glow)" fill="url(#spark)"
-        d="M666 222 C684 318 702 336 798 358 C702 380 684 398 666 494 C648 398 630 380 534 358 C630 336 648 318 666 222 Z"/>
+  <rect width="1024" height="1024" rx="228" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="228" fill="url(#heat)"/>
+  <path fill="#fff" d="M812 478 V548 Q812 562 798 566 L708 590 Q658 606 654 652 V690 H724 Q748 690 752 714 L760 776 H300 L308 714 Q312 690 336 690 H408 V652 Q404 610 360 600 Q262 578 188 488 Q262 478 330 478 Z"/>
+  <path fill="url(#spark)" d="M560 150 C576 256 596 276 702 294 C596 312 576 332 560 438 C544 332 524 312 418 294 C524 276 544 256 560 150 Z"/>
+  <path fill="#ffc46b" d="M754 196 C760 232 766 238 802 244 C766 250 760 256 754 292 C748 256 742 250 706 244 C742 238 748 232 754 196 Z"/>
+  <circle cx="388" cy="196" r="18" fill="#ffc46b" opacity="0.85"/>
 </svg>

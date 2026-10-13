@@ -33,7 +33,7 @@ export function recentReports(): Array<RunReport & { at: number }> {
 
 /**
  * Keeps a report locally and, when a run failed or came back empty, sends it
- * to Mapp Cloud. Reports hold request metadata only: no prompts, no replies.
+ * to Forgr Cloud. Reports hold request metadata only: no prompts, no replies.
  */
 export async function reportRun(report: RunReport): Promise<void> {
   const entry = { ...report, at: Date.now() };

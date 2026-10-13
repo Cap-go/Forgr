@@ -5,8 +5,8 @@ import { str } from './util';
 
 export const app: CapabilityGroup = {
   group: 'app',
-  plugin: 'Mapp shell',
-  summary: 'this app and the Mapp shell',
+  plugin: 'Forgr shell',
+  summary: 'this app and the Forgr shell',
   capabilities: [
     {
       name: 'app.info',

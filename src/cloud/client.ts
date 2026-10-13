@@ -56,14 +56,14 @@ async function request(method: string, path: string, token?: string, body?: unkn
   return { status: res.status, data: (await res.json().catch(() => ({}))) as Record<string, unknown> };
 }
 
-/** Mapp Cloud: a private database per user and shared spaces between users. */
+/** Forgr Cloud: a private database per user and shared spaces between users. */
 class CloudClient {
   private current: CloudSession | null = null;
   private pending: Promise<CloudSession> | null = null;
 
   private async session(force = false): Promise<CloudSession> {
     const creds = session.credentials;
-    if (!creds) throw new CloudError(401, 'Sign in with ChatGPT to use Mapp Cloud.');
+    if (!creds) throw new CloudError(401, 'Sign in with ChatGPT to use Forgr Cloud.');
     if (!force && !this.current) {
       const raw = await secureGet(TOKEN_KEY).catch(() => null);
       if (raw) this.current = JSON.parse(raw) as CloudSession;
@@ -73,7 +73,7 @@ class CloudClient {
     this.pending ??= (async () => {
       const idToken = await session.freshIdToken();
       const res = await request('POST', '/v1/session', undefined, { idToken });
-      if (res.status !== 200) throw new CloudError(res.status, String(res.data.error ?? 'Could not connect to Mapp Cloud'));
+      if (res.status !== 200) throw new CloudError(res.status, String(res.data.error ?? 'Could not connect to Forgr Cloud'));
       const next: CloudSession = {
         token: String(res.data.token),
         userId: String(res.data.userId),
@@ -92,7 +92,7 @@ class CloudClient {
   async call<T>(method: string, path: string, body?: unknown): Promise<T> {
     let res = await request(method, path, (await this.session()).token, body);
     if (res.status === 401) res = await request(method, path, (await this.session(true)).token, body);
-    if (res.status < 200 || res.status >= 300) throw new CloudError(res.status, String(res.data.error ?? `Mapp Cloud error ${res.status}`));
+    if (res.status < 200 || res.status >= 300) throw new CloudError(res.status, String(res.data.error ?? `Forgr Cloud error ${res.status}`));
     return res.data.result as T;
   }
 
@@ -153,5 +153,5 @@ export const cloud = new CloudClient();
 export function memberName(): string {
   const email = session.credentials?.email ?? '';
   const local = email.split('@')[0]?.replace(/[._-]+/g, ' ').trim();
-  return local ? local.replace(/\b\w/g, (c) => c.toUpperCase()).slice(0, 40) : 'Mapp user';
+  return local ? local.replace(/\b\w/g, (c) => c.toUpperCase()).slice(0, 40) : 'Forgr user';
 }

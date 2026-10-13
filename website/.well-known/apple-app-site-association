@@ -4,7 +4,7 @@
       {
         "appIDs": ["UVTJ336J2D.app.capgo.mapp"],
         "components": [
-          { "/": "/l/*", "comment": "Mapp deep links: build, open, edit, join" }
+          { "/": "/l/*", "comment": "Forgr deep links: build, open, edit, join" }
         ]
       }
     ]

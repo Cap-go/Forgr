@@ -38,7 +38,7 @@ const space = (env: Env, spaceId: string) => env.SPACE.get(env.SPACE.idFromName(
 
 function displayName(value: unknown): string {
   const name = typeof value === 'string' ? value.trim().slice(0, 40) : '';
-  return name || 'Mapp user';
+  return name || 'Forgr user';
 }
 
 function inviteUrl(env: Env, code: string): string {
@@ -233,7 +233,7 @@ function joinPage(env: Env, code: string): Response {
   const safe = code.replace(/[^A-Za-z0-9-]/g, '').slice(0, 24);
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Join a shared space on Mapp</title>
+<title>Join a shared space on Forgr</title>
 <style>
 :root{color-scheme:light dark;--bg:#f2f2f7;--card:#fff;--label:#000;--sec:rgba(60,60,67,.6);--accent:#6e56f7}
 @media(prefers-color-scheme:dark){:root{--bg:#000;--card:#1c1c1e;--label:#fff;--sec:rgba(235,235,245,.6)}}
@@ -245,10 +245,10 @@ a.btn{display:block;padding:15px;border-radius:14px;background:var(--accent);col
 a.plain{color:var(--accent);text-decoration:none;font-size:15px}
 </style></head><body><div class="card">
 <h1>You're invited</h1>
-<p>Someone shared data with you on Mapp. Open Mapp and enter this code, or ask the builder to "join space ${safe}".</p>
+<p>Someone shared data with you on Forgr. Open Forgr and enter this code, or ask the builder to "join space ${safe}".</p>
 <div class="code">${safe}</div>
-<a class="btn" href="mapp://join?code=${safe}">Open in Mapp</a>
-<a class="plain" href="${env.BETA_URL}">Don't have Mapp yet?</a>
+<a class="btn" href="mapp://join?code=${safe}">Open in Forgr</a>
+<a class="plain" href="${env.BETA_URL}">Don't have Forgr yet?</a>
 </div></body></html>`;
   return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8' } });
 }

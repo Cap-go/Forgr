@@ -7,7 +7,7 @@ const NAME = /^[a-z0-9][a-z0-9-]{0,39}$/;
 const MAX_CODE_BYTES = 512 * 1024;
 
 /**
- * The only door from user code back into Mapp: bound to one user, it reaches
+ * The only door from user code back into Forgr: bound to one user, it reaches
  * that user's own data and the spaces they belong to, nothing else.
  */
 export class UserBinding extends WorkerEntrypoint<Env, { userId: string }> {

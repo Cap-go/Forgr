@@ -143,7 +143,7 @@ function runtime(manifest: Manifest): void {
     nativeClick.call(this);
   };
 
-  // Three-finger pinch: fingers moving together opens the Mapp switcher.
+  // Three-finger pinch: fingers moving together opens the Forgr switcher.
   let startSpread = 0;
   const spread = (touches: TouchList): number => {
     let cx = 0;

@@ -26,7 +26,7 @@ const mockTiles = (count: number) =>
 const SLIDES: Slide[] = [
   {
     art: () => h('div', { class: 'art art-welcome' }, icon('logo', 'welcome-logo')),
-    title: 'Welcome to Mapp',
+    title: 'Welcome to Forgr',
     body: `Build the small tools you wish you had, just by describing them. They are made for you and live on your ${DEVICE}.`,
   },
   {
@@ -38,7 +38,7 @@ const SLIDES: Slide[] = [
         { text: 'Baby feeding timer' },
       ])),
     title: 'Tiny tools, just for you',
-    body: 'Mapp is for personal tools that fill your own gaps. They are not meant to become products: you do not publish or sell them, you just use them.',
+    body: 'Forgr is for personal tools that fill your own gaps. They are not meant to become products: you do not publish or sell them, you just use them.',
   },
   {
     art: () => h('div', { class: 'art art-learn' },
@@ -95,7 +95,7 @@ const SLIDES: Slide[] = [
         h('li', {}, icon('check'), `Sign in kept in the ${SECURE_STORE}`),
         h('li', {}, icon('check'), 'No ads, no tracking'))),
     title: 'Private by design',
-    body: 'There is no Mapp account. Connect ChatGPT to start building, or try the starter tools first.',
+    body: 'There is no Forgr account. Connect ChatGPT to start building, or try the starter tools first.',
   },
 ];
 

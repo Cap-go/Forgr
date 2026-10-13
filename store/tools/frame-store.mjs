@@ -8,14 +8,14 @@ const root = new URL('../screenshots/', import.meta.url).pathname;
 const android = process.env.OS === 'android';
 const shots = android ? [
   ['1-home', 'Tiny tools, made by you', 'Describe what you need. Use it seconds later.'],
-  ['2-chat', 'Just describe it', 'Mapp makes the tool right on your phone.'],
+  ['2-chat', 'Just describe it', 'Forgr makes the tool right on your phone.'],
   ['3-explainer', 'Learn by playing', 'Interactive explainers instead of walls of text.'],
   ['4-switcher', 'Pinch to switch', 'Three fingers: home, edit or another tool.'],
   ['5-edit', 'Change anything', 'Ask for a change. Undo with one tap.'],
   ['6-secrets', 'Your keys stay yours', 'Saved in the Android Keystore. The AI never sees them.'],
 ] : [
   ['1-home', 'Tiny tools, made by you', 'Describe what you need. Use it seconds later.'],
-  ['2-chat', 'Just describe it', 'Mapp makes the tool right on your iPhone.'],
+  ['2-chat', 'Just describe it', 'Forgr makes the tool right on your iPhone.'],
   ['3-explainer', 'Learn by playing', 'Interactive explainers instead of walls of text.'],
   ['4-switcher', 'Pinch to switch', 'Three fingers: home, edit or another tool.'],
   ['5-edit', 'Change anything', 'Ask for a change. Undo with one tap.'],

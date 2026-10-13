@@ -15,7 +15,7 @@ export const notifications: CapabilityGroup = {
       doc: 'asks permission',
       run: async (args, ctx) => {
         const perm = await LocalNotifications.requestPermissions();
-        if (perm.display !== 'granted') throw new Error('Notifications permission denied. Allow it in Settings > Mapp.');
+        if (perm.display !== 'granted') throw new Error('Notifications permission denied. Allow it in Settings > Forgr.');
         const id = typeof args.id === 'number' ? args.id : Math.floor(Math.random() * 2_000_000_000);
         const at = args.at ? new Date(args.at as string | number) : new Date(Date.now() + 1000);
         if (Number.isNaN(at.getTime())) throw new Error('"at" must be an ISO date string or a timestamp in ms');

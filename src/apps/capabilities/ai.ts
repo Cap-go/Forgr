@@ -63,7 +63,7 @@ export function parseJsonReply(text: string): unknown {
 }
 
 function requireSignedIn(): void {
-  if (!session.signedIn) throw new Error('Sign in with ChatGPT in Mapp settings to use AI features.');
+  if (!session.signedIn) throw new Error('Sign in with ChatGPT in Forgr settings to use AI features.');
 }
 
 let streamSeq = 0;
@@ -114,7 +114,7 @@ export const ai: CapabilityGroup = {
     {
       name: 'ai.status',
       signature: '() -> { available: boolean, provider: "chatgpt", model? }',
-      doc: 'Check before showing AI features; when unavailable, ask the user to sign in from Mapp settings.',
+      doc: 'Check before showing AI features; when unavailable, ask the user to sign in from Forgr settings.',
       run: async () => {
         if (!session.signedIn) return { available: false, provider: 'chatgpt' };
         const model = await session.withToken((token) => resolveModel(token)).catch(() => undefined);

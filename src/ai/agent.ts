@@ -15,7 +15,7 @@ export interface AgentHooks {
   onPhase?(phase: 'connecting' | 'waiting' | 'connected-buffered' | 'tool_begin', detail?: string): void;
   /** Streamed reasoning summary text. */
   onReasoning?(delta: string): void;
-  /** Mapp went to the background mid-request; waiting to come back. */
+  /** Forgr went to the background mid-request; waiting to come back. */
   onPaused?(): void;
   /** Saved after every completed step so an interrupted run can resume. */
   onCheckpoint?(input: ConversationItem[], answer: string): void;
@@ -121,7 +121,7 @@ async function withRetry<T>(fn: () => Promise<T>, hooks: AgentHooks, signal?: Ab
     } catch (error) {
       if (signal?.aborted || !isTransientError(error)) throw error;
       // iOS suspends the WebView in the background and drops the stream.
-      // That is not the network failing: wait for Mapp to come back and redo the step.
+      // That is not the network failing: wait for Forgr to come back and redo the step.
       if (lifecycle.backgroundedSince(startedAt)) {
         hooks.onPaused?.();
         await lifecycle.whenActive();

@@ -1,4 +1,4 @@
-// Records the Mapp demo video from the Vite dev server (bun run dev on BASE).
+// Records the Forgr demo video from the Vite dev server (bun run dev on BASE).
 // bun record-demo.mjs  ->  ../video/demo-raw.webm (1080x1920) and timing in stdout
 import { chromium } from 'playwright';
 import { mkdirSync, renameSync } from 'node:fs';
@@ -96,7 +96,7 @@ await wait(1600);
 await tap('.sheet-head .chip:not(.strong)', { nth: 1 });
 await wait(800);
 
-await caption('Your apps, made by you.', 'Mapp · beta on TestFlight');
+await caption('Your apps, made by you.', 'Forgr · beta on TestFlight');
 await wait(1000);
 await page.evaluate(() => window.pinch());
 await appFrame().evaluate(() => window.__shell.openSwitcher());

@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 
 type Listener = (active: boolean) => void;
 
-/** Foreground/background state of Mapp (app switcher, lock screen, calls). */
+/** Foreground/background state of Forgr (app switcher, lock screen, calls). */
 class Lifecycle {
   private active = true;
   private lastBackgroundAt = 0;
@@ -21,12 +21,12 @@ class Lifecycle {
     return this.active;
   }
 
-  /** True when Mapp went to the background at or after `sinceMs`. */
+  /** True when Forgr went to the background at or after `sinceMs`. */
   backgroundedSince(sinceMs: number): boolean {
     return !this.active || this.lastBackgroundAt >= sinceMs;
   }
 
-  /** Resolves when Mapp is in the foreground (immediately if it already is). */
+  /** Resolves when Forgr is in the foreground (immediately if it already is). */
   whenActive(): Promise<void> {
     return this.active ? Promise.resolve() : new Promise((resolve) => this.waiters.push(resolve));
   }
