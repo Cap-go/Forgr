@@ -1171,7 +1171,7 @@ export class Shell {
             h('a', { href: AUTHOR_URL, onclick: (e: Event) => { e.preventDefault(); openInSafari(AUTHOR_URL); } }, 'Martin Donadieu')),
           h('p', { class: 'about-note' }, 'Built with Capacitor and shipped with Capgo live updates.'),
           updateNote,
-          h('button', { class: 'capgo-pill', onclick: () => openInSafari(CAPGO_URL) }, capgoLogo(), 'Made with Capgo'),
+          h('button', { class: 'capgo-pill', onclick: () => openInSafari(CAPGO_URL) }, capgoLogo(), 'By Capgo'),
           checkBtn),
       ];
     });
