@@ -1168,13 +1168,11 @@ export class Shell {
   private showSettings(): void {
     this.showModal((close) => {
       const version = h('p', { class: 'about-version' }, `Version ${__APP_VERSION__}`);
-      const updateNote = h('p', { class: 'about-note' }, '');
       if (Capacitor.isNativePlatform()) {
         void CapacitorUpdater.current().then((c) => {
           // The built-in bundle reports the native version as its "version"; its id is what tells it apart.
           const builtin = c.bundle.id === 'builtin';
-          version.textContent = builtin ? `Forgr ${c.native} · built-in code` : `Forgr ${c.native} · Live update ${c.bundle.version}`;
-          updateNote.textContent = builtin ? 'No live update installed yet.' : `Code ${__APP_VERSION__} delivered by Capgo.`;
+          version.textContent = builtin ? `Forgr ${c.native}` : `Forgr ${c.native} · ${c.bundle.version}`;
         }).catch(() => undefined);
       }
       const checkBtn = h('button', { class: 'about-check' }, 'Check for updates');
@@ -1231,8 +1229,7 @@ export class Shell {
           version,
           h('p', { class: 'about-author' }, 'Made by ',
             h('a', { href: AUTHOR_URL, onclick: (e: Event) => { e.preventDefault(); openInSafari(AUTHOR_URL); } }, 'Martin Donadieu')),
-          h('p', { class: 'about-note' }, 'Built with Capacitor and shipped with Capgo live updates.'),
-          updateNote,
+          h('p', { class: 'about-note' }, 'Built with Capacitor and Capgo.'),
           h('button', { class: 'capgo-pill', onclick: () => openInSafari(CAPGO_URL) }, capgoLogo(), 'By Capgo'),
           checkBtn),
       ];
@@ -1255,7 +1252,7 @@ export class Shell {
       const [current, latest] = await Promise.all([CapacitorUpdater.current(), CapacitorUpdater.getLatest()]);
       const info = latest as typeof latest & { url?: string; manifest?: unknown[] };
       if (info.error || !info.url || !info.version || info.version === current.bundle.version) {
-        this.toast(info.error && info.error !== 'no_new_version_available' ? `Capgo: ${info.error}` : `Up to date (${current.bundle.id === 'builtin' ? current.native : current.bundle.version})`);
+        this.toast(info.error && info.error !== 'no_new_version_available' ? info.error : `Up to date (${current.bundle.id === 'builtin' ? current.native : current.bundle.version})`);
         return;
       }
       button.textContent = `Downloading ${info.version}…`;
