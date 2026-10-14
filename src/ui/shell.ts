@@ -31,7 +31,7 @@ import { PinchDetector } from './gesture';
 import { parseLink, type LinkAction } from '../links';
 import { showOnboarding } from './onboarding';
 import { h, icon } from './dom';
-import { BROWSER, DEVICE, SECURE_STORE } from '../platform';
+import { DEVICE, SECURE_STORE } from '../platform';
 
 const HOME_CHAT = 'home';
 
@@ -1156,7 +1156,7 @@ export class Shell {
         h('div', { class: 'signin' },
           icon('logo', 'modal-logo'),
           h('h2', {}, 'Connect ChatGPT'),
-          h('p', { class: 'secondary-text' }, `Forgr makes your tools with your own ChatGPT plan. If you are already signed in to ChatGPT in ${BROWSER}, it is one tap, and your saved passwords and passkeys work. No Forgr account.`),
+          h('p', { class: 'secondary-text' }, 'Forgr uses your own ChatGPT plan. Sign in with your ChatGPT email, Google, Apple or Microsoft account. No Forgr account.'),
           btn,
           error,
           h('button', { class: 'btn plain', onclick: close }, 'Not Now'),
