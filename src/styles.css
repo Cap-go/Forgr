@@ -409,6 +409,9 @@ button.row:active { background: var(--highlight); }
 .signin h2 { margin: 6px 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
 .signin .secondary-text { margin: 0 0 14px; font-size: 15px; line-height: 1.4; color: var(--secondary); max-width: 320px; }
 .signin .footnote { margin: 4px 0 0; }
+.consent .secondary-text { margin-bottom: 4px; }
+.consent-list { margin: 0 0 12px; padding: 0 0 0 20px; max-width: 320px; text-align: left; font-size: 15px; line-height: 1.45; color: var(--secondary); }
+.consent .footnote a { color: inherit; }
 .modal-logo { width: 64px; height: 64px; }
 
 .btn {

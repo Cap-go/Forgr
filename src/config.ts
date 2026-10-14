@@ -33,6 +33,7 @@ export const SECURE_STORAGE_KEYS = {
 } as const;
 
 export const APP_LINKS = {
+  openaiPrivacy: 'https://openai.com/policies/privacy-policy/',
   privacy: 'https://capgo.app/privacy/',
   terms: 'https://capgo.app/tos/',
   support: 'https://capgo.app/contact/',
@@ -42,4 +43,6 @@ export const APP_LINKS = {
 export const PREF_KEYS = {
   onboarded: 'mapp_onboarded_v1',
   seeded: 'mapp_seeded_v1',
+  /** 'yes' once the user allowed sending AI requests to OpenAI (App Review 5.1.2(i)). */
+  aiConsent: 'forgr_ai_consent_v1',
 } as const;

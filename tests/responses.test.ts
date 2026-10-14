@@ -6,6 +6,21 @@ function sse(events: unknown[]): string {
 }
 
 describe('Responses stream parsing', () => {
+  test('sends nothing to the AI without consent', async () => {
+    const { setAiConsent } = await import('../src/consent');
+    const { createResponseStream } = await import('../src/ai/responses');
+    setAiConsent(false);
+    const realFetch = globalThis.fetch;
+    let called = false;
+    globalThis.fetch = (async () => { called = true; return new Response(''); }) as unknown as typeof fetch;
+    try {
+      await expect(createResponseStream({ accessToken: 't', input: [], instructions: '' })).rejects.toThrow('AI data sharing is off');
+      expect(called).toBe(false);
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+  });
+
   test('uses streamed items when response.completed has an empty output', async () => {
     const item = { id: 'fc_1', type: 'function_call', call_id: 'call_1', name: 'create_app', namespace: 'mapp', arguments: '' };
     const body = sse([
@@ -24,6 +39,7 @@ describe('Responses stream parsing', () => {
     }) as typeof fetch;
     try {
       const { createResponseStream } = await import('../src/ai/responses');
+      (await import('../src/consent')).setAiConsent(true);
       const stream = await createResponseStream({ accessToken: 't', input: [], instructions: '' });
       let completed;
       for await (const event of stream) if (event.type === 'completed') completed = event.parsed;

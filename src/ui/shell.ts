@@ -26,6 +26,7 @@ import { questionCard, secretCard, type SecretSpec } from './cards';
 import { deleteSecret, listSecrets, looksLikeSecret, normalizeSecretName, saveSecret } from '../secrets';
 import { takeRequestLog } from '../ai/responses';
 import { reportRun } from '../diag';
+import { hasAiConsent, setAiConsent } from '../consent';
 import { PinchDetector } from './gesture';
 import { parseLink, type LinkAction } from '../links';
 import { showOnboarding } from './onboarding';
@@ -656,7 +657,7 @@ export class Shell {
         : SUGGESTIONS;
       this.messagesEl.append(
         h('div', { class: 'empty-chat' },
-          h('p', { class: 'empty-lead' }, app ? `What should change in ${app.name}?` : `Describe the tool you want. Forgr makes it on this ${DEVICE}.`),
+          h('p', { class: 'empty-lead' }, app ? `What should change in ${app.name}?` : 'Describe the tool you want. Forgr makes it for you.'),
           h('div', { class: 'section-label' }, app ? 'Try' : 'Ideas'),
           h('div', { class: 'group ideas' }, ...ideas.map((idea) =>
             h('button', { class: 'row idea', onclick: () => { this.input.value = idea; this.submit(); } },
@@ -817,6 +818,13 @@ export class Shell {
   }
 
   private async run(text: string, retry = false, fromLink = false): Promise<void> {
+    if (!hasAiConsent() && !(await this.askAiConsent())) {
+      if (!retry) {
+        this.input.value = text;
+        this.autosize();
+      }
+      return;
+    }
     const conversation = this.conversation;
     if (!conversation.messages.length) this.messagesEl.replaceChildren();
     // Continue from the last finished step when an earlier run was interrupted.
@@ -1067,8 +1075,54 @@ export class Shell {
     requestAnimationFrame(() => sheet.present());
   }
 
+  /** Asks once before anything goes to the AI (App Review 5.1.2(i)). Resolves true when allowed. */
+  private askAiConsent(): Promise<boolean> {
+    this.input.blur();
+    return new Promise((resolve) => {
+      let settled = false;
+      const settle = (allowed: boolean) => {
+        if (settled) return;
+        settled = true;
+        setAiConsent(allowed);
+        resolve(allowed);
+      };
+      this.showModal((close) => [
+        h('div', { class: 'signin consent' },
+          icon('logo', 'modal-logo'),
+          h('h2', {}, 'Your data stays on your phone'),
+          h('p', { class: 'secondary-text' }, 'Your tools, chats and files are stored only on this device. Forgr has no account and we do not receive your chats or your data.'),
+          h('p', { class: 'secondary-text' }, 'To answer you, the AI runs at OpenAI through your own ChatGPT account. With your permission, Forgr sends OpenAI:'),
+          h('ul', { class: 'consent-list' },
+            h('li', {}, 'Your messages and the photos or files you attach'),
+            h('li', {}, 'The code and errors of the tool you are working on'),
+            h('li', {}, 'What your tools ask the AI when they use it')),
+          h('p', { class: 'secondary-text' }, `Saved keys and passwords are never sent. OpenAI handles this data under its privacy policy. If a tool you make uses cloud storage or sharing, only that tool's shared data is kept on Forgr Cloud.`),
+          h('button', { class: 'btn mono', onclick: () => { settle(true); close(); } }, 'Allow'),
+          h('button', { class: 'btn plain', onclick: () => { settle(false); close(); } }, 'Not Now'),
+          h('p', { class: 'footnote center' },
+            h('a', { href: APP_LINKS.openaiPrivacy, onclick: (e: Event) => { e.preventDefault(); openInSafari(APP_LINKS.openaiPrivacy); } }, 'OpenAI Privacy Policy'),
+            ' · ',
+            h('a', { href: APP_LINKS.privacy, onclick: (e: Event) => { e.preventDefault(); openInSafari(APP_LINKS.privacy); } }, 'Forgr Privacy Policy'))),
+      ]);
+      // Dismissing the sheet counts as Not Now.
+      const observer = new MutationObserver(() => {
+        if (this.modalLayer.classList.contains('hidden')) {
+          observer.disconnect();
+          settle(false);
+        }
+      });
+      observer.observe(this.modalLayer, { attributes: true, attributeFilter: ['class'] });
+    });
+  }
+
   private showSignIn(): void {
     this.input.blur();
+    if (!hasAiConsent()) {
+      void this.askAiConsent().then((allowed) => {
+        if (allowed) this.showSignIn();
+      });
+      return;
+    }
     this.showModal((close) => {
       const error = h('p', { class: 'error-text hidden' });
       const btn = h('button', { class: 'btn mono' }, 'Continue with ChatGPT');
@@ -1146,6 +1200,14 @@ export class Shell {
           email
             ? h('button', { class: 'row danger', onclick: async () => { await session.signOut(); await cloud.signOut(); close(); this.toast('Signed out'); } }, h('span', { class: 'row-title' }, 'Sign Out'))
             : h('button', { class: 'row accent', onclick: () => { close(); this.showSignIn(); } }, h('span', { class: 'row-title' }, 'Connect ChatGPT'))),
+        h('div', { class: 'section-label' }, 'AI Data Sharing'),
+        h('div', { class: 'group' },
+          hasAiConsent()
+            ? h('button', { class: 'row danger', onclick: () => { setAiConsent(false); close(); this.toast('AI data sharing turned off'); } },
+              h('div', { class: 'row-body' }, h('span', { class: 'row-title' }, 'Stop Sharing with OpenAI'), h('span', { class: 'row-sub' }, 'Allowed: messages, tool code and tool AI requests go to OpenAI')))
+            : h('button', { class: 'row accent', onclick: () => { close(); void this.askAiConsent(); } },
+              h('div', { class: 'row-body' }, h('span', { class: 'row-title' }, 'Review AI Data Sharing'), h('span', { class: 'row-sub' }, 'Off: nothing is sent to the AI')))),
+        h('p', { class: 'group-footer' }, 'Your tools, chats and files stay on this phone. We do not receive them.'),
         h('div', { class: 'section-label' }, 'Secrets'),
         h('div', { class: 'group' },
           ...(listSecrets().length

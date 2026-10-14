@@ -1,3 +1,4 @@
+import { AI_CONSENT_REQUIRED, hasAiConsent } from '../consent';
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { HttpStream } from '@capgo/http-stream';
 import { MODELS_API_URL, RESPONSES_API_URL, RESPONSES_MODEL } from '../config';
@@ -51,6 +52,7 @@ export async function resolveModel(accessToken: string): Promise<string> {
 let reasoningSummaries = true;
 
 export async function createResponseStream(req: ResponseRequest): Promise<AsyncIterable<StreamEvent>> {
+  if (!hasAiConsent()) throw new Error(AI_CONSENT_REQUIRED);
   try {
     return await openStream(req);
   } catch (error) {
@@ -219,6 +221,7 @@ export function isTransientError(error: unknown): boolean {
 
 /** Single completion without tools, used by mini apps through mapp.ai.chat. */
 export async function completeText(req: Omit<ResponseRequest, 'tools'>): Promise<string> {
+  if (!hasAiConsent()) throw new Error(AI_CONSENT_REQUIRED);
   const stream = await createResponseStream(req);
   for await (const event of stream) {
     if (event.type === 'completed') return event.parsed.assistantText;
