@@ -1091,7 +1091,7 @@ export class Shell {
           icon('logo', 'modal-logo'),
           h('h2', {}, 'Your data stays on your phone'),
           h('p', { class: 'secondary-text' }, 'Your tools, chats and files are stored only on this device. Forgr has no account and we do not receive your chats or your data.'),
-          h('p', { class: 'secondary-text' }, 'To answer you, the AI runs at OpenAI through your own ChatGPT account. With your permission, Forgr sends OpenAI:'),
+          h('p', { class: 'secondary-text' }, 'When you send a message, it goes straight from your phone to OpenAI with your own ChatGPT account, with no server in between. With your permission, OpenAI receives:'),
           h('ul', { class: 'consent-list' },
             h('li', {}, 'Your messages and the photos or files you attach'),
             h('li', {}, 'The code and errors of the tool you are working on'),
