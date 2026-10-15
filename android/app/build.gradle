@@ -31,8 +31,8 @@ android {
     buildTypes {
         release {
             if (System.getenv('MAPP_UPLOAD_STORE_FILE')) signingConfig signingConfigs.release
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
