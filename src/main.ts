@@ -37,11 +37,26 @@ if (demo) {
     shell.agent = scriptedAgent;
     await shell.init();
     session.demo('alex@example.com');
-    if (new URLSearchParams(location.search).get('demo') === 'store') {
+    const demoMode = new URLSearchParams(location.search).get('demo');
+    if (demoMode === 'store') {
       const [{ STORE_TOOLS }, { appStore }] = await Promise.all([import('./ui/store-demo'), import('./apps/store')]);
       if (!appStore.list().some((a) => a.name === 'Groceries')) {
         for (const tool of STORE_TOOLS) await appStore.create(tool);
       }
+    }
+    if (demoMode === 'widget') {
+      const { appStore } = await import('./apps/store');
+      const html = '<!doctype html><title>Forgr</title>';
+      for (const tool of [
+        { name: 'Plants', emoji: '🌱', color: '#30d158' },
+        { name: 'Groceries', emoji: '🛒', color: '#ffcc00' },
+        { name: 'Water', emoji: '💧', color: '#64d2ff' },
+        { name: 'Journal', emoji: '📓', color: '#ff9f0a' },
+        { name: 'Breathe', emoji: '🌬️', color: '#bf5af2' },
+      ]) {
+        if (!appStore.list().some((app) => app.name === tool.name)) await appStore.create({ ...tool, html });
+      }
+      shell.showWidget();
     }
     (window as unknown as { __shell: Shell }).__shell = shell;
   });

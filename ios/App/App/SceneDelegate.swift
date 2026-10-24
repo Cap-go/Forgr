@@ -14,6 +14,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.rootViewController = CAPBridgeViewController()
         window?.makeKeyAndVisible()
 
+        NotificationCenter.default.addObserver(forName: Notification.Name("ForgrWidgetDidRequestOpen"), object: nil, queue: .main) { [weak self] _ in
+            guard let controller = self?.window?.rootViewController as? CAPBridgeViewController else { return }
+            controller.bridge?.triggerWindowJSEvent(eventName: "forgr-widget-open")
+        }
+
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
     }
 

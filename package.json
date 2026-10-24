@@ -1,7 +1,7 @@
 {
   "name": "mapp",
   "private": true,
-  "version": "1.3.5",
+  "version": "1.3.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -35,9 +35,9 @@
     "@capgo/capacitor-contacts": "^8",
     "@capgo/capacitor-date-picker": "^8",
     "@capgo/capacitor-device-info": "^8",
-    "@capgo/capacitor-document-scanner": "^8",
+    "@capgo/capacitor-document-scanner": "^8.4.15",
     "@capgo/capacitor-flash": "^8",
-    "@capgo/capacitor-inappbrowser": "^8.22.4",
+    "@capgo/capacitor-inappbrowser": "8.26.2",
     "@capgo/capacitor-keep-awake": "^8",
     "@capgo/capacitor-launch-navigator": "^8",
     "@capgo/capacitor-native-biometric": "^8",
@@ -51,9 +51,10 @@
     "@capgo/capacitor-speech-synthesis": "^8",
     "@capgo/capacitor-updater": "^8.52.1",
     "@capgo/capacitor-volume-buttons": "^8",
+    "@capgo/capacitor-widget-kit": "^8.1.15",
+    "@capgo/http-stream": "file:./plugins/http-stream",
     "@capgo/oauth-loopback": "file:./plugins/oauth-loopback",
-    "capacitor-secure-storage-plugin": "^0.13.0",
-    "@capgo/http-stream": "file:./plugins/http-stream"
+    "capacitor-secure-storage-plugin": "^0.13.0"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
