@@ -53,7 +53,7 @@ public class ForgrToolsWidget extends AppWidgetProvider {
         boolean open = layout.equals("open");
         views.setViewVisibility(R.id.open_panel, open ? View.VISIBLE : View.GONE);
         views.setViewVisibility(R.id.grid, open ? View.GONE : View.VISIBLE);
-        tint(views, R.id.open_panel, Color.parseColor("#2C2C2E"));
+        tint(views, R.id.open_panel, Color.parseColor("#2C2C2E"), R.drawable.widget_tile);
         views.setOnClickPendingIntent(R.id.open_panel, launch(context, appWidgetId, 0, ""));
         if (!open) bindGrid(context, views, appWidgetId, layout, size, state.optJSONArray("tools"));
         manager.updateAppWidget(appWidgetId, views);
@@ -64,7 +64,7 @@ public class ForgrToolsWidget extends AppWidgetProvider {
         int columns = columns(layout, size);
         int rows = count == 0 ? 1 : (int) Math.ceil(count / (double) columns);
         boolean tiny = layout.equals("tiny");
-        float emoji = layout.equals("big") ? 28f : tiny ? 18f : 22f;
+        float side = layout.equals("big") ? 74f : tiny ? 46f : 60f;
         String pkg = context.getPackageName();
         int placed = 0;
         for (int row = 0; row < 3; row++) {
@@ -83,8 +83,12 @@ public class ForgrToolsWidget extends AppWidgetProvider {
                 rowUsed = true;
                 String name = tool.optString("name", "Tool");
                 views.setTextViewText(emojiId, tool.optString("emoji", "✨"));
-                views.setTextViewTextSize(emojiId, android.util.TypedValue.COMPLEX_UNIT_SP, emoji);
-                tint(views, emojiId, color(tool.optString("color", "#8E8E93")));
+                views.setTextViewTextSize(emojiId, android.util.TypedValue.COMPLEX_UNIT_SP, side * 0.42f);
+                if (Build.VERSION.SDK_INT >= 31) {
+                    views.setViewLayoutWidth(emojiId, side, android.util.TypedValue.COMPLEX_UNIT_DIP);
+                    views.setViewLayoutHeight(emojiId, side, android.util.TypedValue.COMPLEX_UNIT_DIP);
+                }
+                tint(views, emojiId, color(tool.optString("color", "#8E8E93")), R.drawable.widget_icon);
                 views.setTextViewText(nameId, name);
                 views.setViewVisibility(nameId, tiny ? View.GONE : View.VISIBLE);
                 views.setContentDescription(slot, name);
@@ -96,9 +100,9 @@ public class ForgrToolsWidget extends AppWidgetProvider {
         }
     }
 
-    private static void tint(RemoteViews views, int viewId, int color) {
+    private static void tint(RemoteViews views, int viewId, int color, int background) {
+        views.setInt(viewId, "setBackgroundResource", background);
         if (Build.VERSION.SDK_INT >= 31) {
-            views.setInt(viewId, "setBackgroundResource", R.drawable.widget_tile);
             views.setColorStateList(viewId, "setBackgroundTintList", ColorStateList.valueOf(color));
         } else {
             views.setInt(viewId, "setBackgroundColor", color);

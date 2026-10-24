@@ -47,17 +47,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji0"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name0"
                     android:layout_width="match_parent"
@@ -74,17 +73,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji1"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name1"
                     android:layout_width="match_parent"
@@ -101,17 +99,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji2"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name2"
                     android:layout_width="match_parent"
@@ -128,17 +125,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji3"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name3"
                     android:layout_width="match_parent"
@@ -162,17 +158,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji4"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name4"
                     android:layout_width="match_parent"
@@ -189,17 +184,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji5"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name5"
                     android:layout_width="match_parent"
@@ -216,17 +210,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji6"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name6"
                     android:layout_width="match_parent"
@@ -243,17 +236,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji7"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name7"
                     android:layout_width="match_parent"
@@ -277,17 +269,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji8"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name8"
                     android:layout_width="match_parent"
@@ -304,17 +295,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji9"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name9"
                     android:layout_width="match_parent"
@@ -331,17 +321,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji10"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name10"
                     android:layout_width="match_parent"
@@ -358,17 +347,16 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
                 <TextView
                     android:id="@+id/emoji11"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/widget_tile"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/widget_icon"
                     android:gravity="center"
-                    android:textSize="22sp" />
+                    android:textSize="26sp" />
                 <TextView
                     android:id="@+id/name11"
                     android:layout_width="match_parent"

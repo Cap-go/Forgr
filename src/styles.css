@@ -731,16 +731,16 @@ h5.md-h, h6.md-h { font-size: 15px; color: var(--secondary); }
 .w-open span { font-size: 13px; font-weight: 500; color: rgba(235, 235, 245, 0.6); }
 .w-btn {
   min-width: 0; height: 100%;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  color: rgba(235, 235, 245, 0.72); font-size: 11px; font-weight: 500;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  color: rgba(235, 235, 245, 0.92); font-size: 11px; font-weight: 500;
 }
 .w-emoji {
-  width: 100%; flex: 1; min-height: 28px;
+  width: 60px; height: 60px; flex: none;
   display: grid; place-items: center;
-  border-radius: 14px; font-size: 22px; line-height: 1;
+  border-radius: 13px; font-size: 26px; line-height: 1;
 }
-.widget-card.tiny .w-emoji { font-size: 18px; border-radius: 10px; }
-.widget-card.big .w-emoji { font-size: 28px; border-radius: 16px; }
+.widget-card.tiny .w-emoji { width: 46px; height: 46px; border-radius: 10px; font-size: 22px; }
+.widget-card.big .w-emoji { width: 74px; height: 74px; border-radius: 17px; font-size: 32px; }
 .widget-card.tiny .w-name { display: none; }
 .w-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .w-empty { margin: auto; color: rgba(235, 235, 245, 0.55); font-size: 13px; text-align: center; }

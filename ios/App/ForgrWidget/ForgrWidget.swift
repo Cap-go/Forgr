@@ -123,33 +123,60 @@ struct ForgrToolsView: View {
                 launchButton(id: "") { emptyLabel }
             } else {
                 let shown = Array(entry.tools.prefix(slotCount(layout: entry.layout, size: size)))
-                let cols = columns(layout: entry.layout, size: size)
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: max(cols, 1)), spacing: 8) {
-                    ForEach(shown) { tool in
-                        Button(intent: OpenForgrToolIntent(toolId: tool.id)) {
-                            VStack(spacing: 4) {
-                                Text(tool.emoji)
-                                    .font(.system(size: entry.layout == "big" ? 28 : entry.layout == "tiny" ? 18 : 22))
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .background(tileColor(tool.color), in: RoundedRectangle(cornerRadius: entry.layout == "tiny" ? 10 : 14, style: .continuous))
-                                if entry.layout != "tiny" {
-                                    Text(tool.name)
-                                        .font(.system(size: 11, weight: .medium))
-                                        .lineLimit(1)
-                                        .foregroundStyle(Color.white.opacity(0.72))
-                                }
+                let cols = max(columns(layout: entry.layout, size: size), 1)
+                let rows = Int((shown.count + cols - 1) / cols)
+                let side = iconSide(entry.layout)
+                VStack(spacing: 14) {
+                    ForEach(0..<rows, id: \.self) { row in
+                        HStack(spacing: entry.layout == "tiny" ? 14 : 18) {
+                            ForEach(0..<cols, id: \.self) { column in
+                                toolButton(shown, index: row * cols + column, side: side, named: entry.layout != "tiny")
                             }
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(tool.name)
                     }
                 }
             }
         }
-        .padding(12)
+        .padding(8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        .containerBackground(Color(red: 0.110, green: 0.110, blue: 0.118), for: .widget)
-        .environment(\.colorScheme, .dark)
+        .containerBackground(.background, for: .widget)
+    }
+
+    /// Same footprint as a Home Screen icon. Tiny is a bit smaller, Big a bit larger. Never a stretched bar.
+    private func iconSide(_ layout: String) -> CGFloat {
+        switch layout {
+        case "tiny": return 46
+        case "big": return 74
+        default: return 60
+        }
+    }
+
+    @ViewBuilder
+    private func toolButton(_ shown: [ForgrTool], index: Int, side: CGFloat, named: Bool) -> some View {
+        if index < shown.count {
+            Button(intent: OpenForgrToolIntent(toolId: shown[index].id)) {
+                toolIcon(shown[index], side: side, named: named)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(shown[index].name)
+        }
+    }
+
+    private func toolIcon(_ tool: ForgrTool, side: CGFloat, named: Bool) -> some View {
+        VStack(spacing: 4) {
+            Text(tool.emoji)
+                .font(.system(size: side * 0.42))
+                .frame(width: side, height: side)
+                .background(tileColor(tool.color), in: RoundedRectangle(cornerRadius: side * 0.225, style: .continuous))
+            if named {
+                Text(tool.name)
+                    .font(.system(size: 11, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .frame(width: side + 8)
+                    .foregroundStyle(.primary)
+            }
+        }
     }
 
     private var openLabel: some View {
