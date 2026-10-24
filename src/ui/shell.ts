@@ -33,7 +33,7 @@ import { showOnboarding } from './onboarding';
 import { h, icon } from './dom';
 import { DEVICE, SECURE_STORE } from '../platform';
 import { loadWidgetConfig, saveWidgetConfig, type WidgetSize } from '../widget/layout';
-import { syncWidget, takeWidgetLaunch } from '../widget/sync';
+import { acknowledgeWidgetLaunch, peekWidgetLaunch, syncWidget } from '../widget/sync';
 import { buildWidgetSettings } from './widget-sheet';
 
 const HOME_CHAT = 'home';
@@ -116,6 +116,11 @@ export class Shell {
     void this.openFromWidget();
 
     if (Capacitor.isNativePlatform()) {
+      // The widget intent fires this when Forgr is already on screen. Resume does not.
+      window.addEventListener('forgr-widget-open', () => { void this.openFromWidget(); });
+      window.setInterval(() => {
+        if (document.visibilityState === 'visible') void this.openFromWidget();
+      }, 1500);
       // A live update finished downloading: offer to restart into it now.
       void CapacitorUpdater.addListener('downloadComplete', ({ bundle }) => {
         this.showUpdateReady(bundle.id, bundle.version);
@@ -344,7 +349,10 @@ export class Shell {
   }
 
   private async runLink(link: LinkAction): Promise<void> {
-    if (document.body.classList.contains('onboarding-open')) return;
+    if (document.body.classList.contains('onboarding-open')) {
+      this.pendingLink = link;
+      return;
+    }
     const needsAccount = link.action === 'build' || link.action === 'join' || (link.action === 'edit' && link.prompt);
     if (needsAccount && !session.signedIn) {
       this.pendingLink = link;
@@ -353,6 +361,7 @@ export class Shell {
     }
     switch (link.action) {
       case 'home':
+        this.dismissPresentedSheet();
         this.goHome();
         return;
       case 'join':
@@ -366,6 +375,7 @@ export class Shell {
           this.toast(`No tool called "${link.app}"`);
           return;
         }
+        this.dismissPresentedSheet();
         await this.openApp(app.id);
         // Edits from a link are only prefilled: the user reviews and sends.
         if (link.action === 'edit') this.openChat(app.id, link.prompt);
@@ -1284,20 +1294,43 @@ export class Shell {
     });
   }
 
-  private async openFromWidget(): Promise<void> {
-    const appId = await takeWidgetLaunch();
-    if (appId === undefined || document.body.classList.contains('onboarding-open')) return;
-    if (!appId) {
-      if (this.currentAppId) this.goHome();
-      return;
+  private widgetLaunching = false;
+
+  private dismissPresentedSheet(): void {
+    const sheet = this.modalLayer.querySelector('cap-sheet') as CapSheet | null;
+    if (!sheet) return;
+    sheet.dismiss();
+    this.modalLayer.classList.add('hidden');
+  }
+
+  /** Opens the tool a widget button asked for. False when nothing was waiting, or the tour is still up. */
+  private async openFromWidget(): Promise<boolean> {
+    if (this.widgetLaunching) return false;
+    this.widgetLaunching = true;
+    try {
+      const launch = await peekWidgetLaunch();
+      if (!launch || document.body.classList.contains('onboarding-open')) return false;
+      await acknowledgeWidgetLaunch(launch.messageIds);
+      this.dismissPresentedSheet();
+      if (!launch.appId) {
+        if (this.currentAppId) this.goHome();
+        return true;
+      }
+      if (appStore.get(launch.appId) && this.currentAppId !== launch.appId) await this.openApp(launch.appId);
+      return true;
+    } finally {
+      this.widgetLaunching = false;
     }
-    if (appStore.get(appId) && this.currentAppId !== appId) await this.openApp(appId);
   }
 
   private showOnboarding(): void {
-    void showOnboarding(this.root).then((connect) => {
+    void showOnboarding(this.root).then(async (connect) => {
       localStorage.setItem(PREF_KEYS.onboarded, '1');
-      if (connect && !session.signedIn) this.showSignIn();
+      const queued = this.pendingLink;
+      this.pendingLink = null;
+      const opened = await this.openFromWidget();
+      if (queued) await this.runLink(queued);
+      if (!opened && !queued && connect && !session.signedIn) this.showSignIn();
     });
   }
 

@@ -69,14 +69,18 @@ private func loadEntry() -> ForgrEntry {
 }
 
 private func tileColor(_ hex: String) -> Color {
+    let fallback = Color(red: 142.0 / 255, green: 142.0 / 255, blue: 147.0 / 255)
     var text = hex.trimmingCharacters(in: .whitespacesAndNewlines)
     if text.hasPrefix("#") { text.removeFirst() }
+    guard text.count == 6 || text.count == 8 else { return fallback }
     var value: UInt64 = 0
-    Scanner(string: text).scanHexInt64(&value)
+    let scanner = Scanner(string: text)
+    guard scanner.scanHexInt64(&value), scanner.isAtEnd else { return fallback }
+    let rgb = text.count == 8 ? value & 0xFFFFFF : value
     return Color(
-        red: Double((value >> 16) & 0xFF) / 255,
-        green: Double((value >> 8) & 0xFF) / 255,
-        blue: Double(value & 0xFF) / 255
+        red: Double((rgb >> 16) & 0xFF) / 255,
+        green: Double((rgb >> 8) & 0xFF) / 255,
+        blue: Double(rgb & 0xFF) / 255
     )
 }
 
@@ -173,7 +177,7 @@ struct ForgrToolsView: View {
                     .font(.system(size: 11, weight: .medium))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
-                    .frame(width: side + 8)
+                    .frame(width: side)
                     .foregroundStyle(.primary)
             }
         }
@@ -181,7 +185,7 @@ struct ForgrToolsView: View {
 
     private var openLabel: some View {
         VStack(spacing: 2) {
-            Text("Forgr").font(.system(size: 22, weight: .semibold))
+            Text("Forgr").font(.system(size: 22, weight: .semibold)).foregroundStyle(Color.white)
             Text("Open").font(.system(size: 13, weight: .medium)).foregroundStyle(Color.white.opacity(0.6))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -191,7 +195,7 @@ struct ForgrToolsView: View {
     private var emptyLabel: some View {
         Text("Pin tools in Forgr")
             .font(.system(size: 13, weight: .medium))
-            .foregroundStyle(Color.white.opacity(0.6))
+            .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 

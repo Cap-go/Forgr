@@ -103,7 +103,8 @@ export function setWidgetLayout(config: WidgetConfig, layout: WidgetLayout): Wid
 /** Pins or unpins a tool. `full` means the layout already holds its maximum. */
 export function toggleWidgetTool(config: WidgetConfig, apps: WidgetApp[], id: string): { config: WidgetConfig; full: boolean } {
   const cap = pinLimit(config.layout);
-  const current = config.toolIds ?? apps.map((app) => app.id).slice(0, cap);
+  const known = new Set(apps.map((app) => app.id));
+  const current = (config.toolIds ?? apps.map((app) => app.id)).filter((item) => known.has(item)).slice(0, cap);
   if (current.includes(id)) return { config: { ...config, toolIds: current.filter((item) => item !== id) }, full: false };
   if (current.length >= cap) return { config, full: true };
   return { config: { ...config, toolIds: [...current, id] }, full: false };

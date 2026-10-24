@@ -25,10 +25,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="Open"
+            android:text="@string/widget_open"
             android:textColor="#99EBEBF5"
             android:textSize="13sp" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/empty_label"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/widget_empty"
+        android:textColor="#B3EBEBF5"
+        android:textSize="13sp"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/grid"
@@ -50,13 +60,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji0"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name0"
                     android:layout_width="match_parent"
@@ -76,13 +85,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji1"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name1"
                     android:layout_width="match_parent"
@@ -102,13 +110,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji2"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name2"
                     android:layout_width="match_parent"
@@ -128,13 +135,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji3"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name3"
                     android:layout_width="match_parent"
@@ -161,13 +167,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji4"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name4"
                     android:layout_width="match_parent"
@@ -187,13 +192,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji5"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name5"
                     android:layout_width="match_parent"
@@ -213,13 +217,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji6"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name6"
                     android:layout_width="match_parent"
@@ -239,13 +242,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji7"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name7"
                     android:layout_width="match_parent"
@@ -272,13 +274,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji8"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name8"
                     android:layout_width="match_parent"
@@ -298,13 +299,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji9"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name9"
                     android:layout_width="match_parent"
@@ -324,13 +324,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji10"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name10"
                     android:layout_width="match_parent"
@@ -350,13 +349,12 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="2dp">
-                <TextView
+                <ImageView
                     android:id="@+id/emoji11"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/widget_icon"
-                    android:gravity="center"
-                    android:textSize="26sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/name11"
                     android:layout_width="match_parent"

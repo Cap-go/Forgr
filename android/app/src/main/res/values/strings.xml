@@ -6,4 +6,6 @@
     <string name="custom_url_scheme">app.capgo.mapp</string>
     <string name="widget_name">Forgr</string>
     <string name="widget_description">Open your tools in one tap.</string>
+    <string name="widget_open">Open</string>
+    <string name="widget_empty">Pin tools in Forgr</string>
 </resources>

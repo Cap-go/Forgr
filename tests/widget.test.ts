@@ -63,6 +63,13 @@ describe('widget layout', () => {
     expect(overflow.config.toolIds).toEqual(['tips', 'focus', 'plants', 'water']);
   });
 
+  test('deleted pins do not count toward the limit', () => {
+    const config: WidgetConfig = { layout: 'big', toolIds: ['gone-a', 'gone-b', 'tips', 'focus'] };
+    const next = toggleWidgetTool(config, apps, 'habits');
+    expect(next.full).toBe(false);
+    expect(next.config.toolIds).toEqual(['tips', 'focus', 'habits']);
+  });
+
   test('open layout has no tool buttons, and tool urls open that tool', () => {
     const state = buildWidgetState(setWidgetLayout(defaultWidgetConfig(), 'open'), apps);
     expect(state.tools).toEqual([]);

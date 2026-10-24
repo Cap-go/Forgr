@@ -8,7 +8,7 @@ Personal app builder for iOS and Android (Capacitor 8 + Capgo). Sign in with Cha
 - **Builder agent** on the OpenAI Responses API with the user's plan token. Tools in the `mapp` namespace: list/read/create/write/edit apps, open app, read runtime logs, and bundled **Capgo skills** (`src/skills/*.md`).
 - **Mini apps** are single-file HTML documents stored with `@capacitor/filesystem`, run in a sandboxed iframe with `window.mapp` (storage, haptics, camera, location, notifications, share, clipboard, native HTTP, `ai.chat`). Every change is versioned, Undo restores the previous one.
 - **Three-finger pinch** inside any app opens the switcher: Home, Edit (floating chat), or another app. Spread to go back.
-- **Home Screen widget** (`@capgo/capacitor-widget-kit`): Settings → Quick Launch pins tools as buttons. Layouts are Open (one tap opens Forgr), Tiny, Regular and Big, on a small, medium or large widget.
+- **Home Screen widget** (`@capgo/capacitor-widget-kit`): Settings → Quick Launch pins tools as buttons. The widget needs iOS 17 or later and is available on Android. Layouts are Open (one tap opens Forgr), Tiny, Regular and Big, on a small, medium or large widget.
 - **Capgo live updates** (`@capgo/capacitor-updater`, app `app.capgo.mapp`, channel `production`) ship shell updates OTA.
 
 ## Develop

@@ -12,11 +12,16 @@ export async function syncWidget(apps: WidgetApp[]): Promise<void> {
       color: tool.color,
     }));
     const payload: JsonObject = { layout: state.layout, tools };
-    await CapgoWidgetKit.startWidgetSession({
-      widgetId: WIDGET_ID,
-      kind: WIDGET_KIND,
-      state: payload,
-    });
+    const existing = await CapgoWidgetKit.getWidgetSession({ widgetId: WIDGET_ID });
+    if (existing.session) {
+      await CapgoWidgetKit.updateWidgetSession({ widgetId: WIDGET_ID, state: payload });
+    } else {
+      await CapgoWidgetKit.startWidgetSession({
+        widgetId: WIDGET_ID,
+        kind: WIDGET_KIND,
+        state: payload,
+      });
+    }
     await CapgoWidgetKit.reloadWidgets({ kind: WIDGET_KIND });
   } catch {
     // The in-app preview still shows the choice. Native reload can fail off-device.
@@ -27,7 +32,8 @@ export async function syncWidget(apps: WidgetApp[]): Promise<void> {
  * Latest tool id a widget button asked to open.
  * `undefined` when nothing is waiting, `''` when the button opens Forgr itself.
  */
-export async function takeWidgetLaunch(): Promise<string | null | undefined> {
+/** Unacknowledged widget open, without consuming it. `appId` is `''` when the button opens Forgr. */
+export async function peekWidgetLaunch(): Promise<{ appId: string; messageIds: string[] } | undefined> {
   try {
     const { messages } = await CapgoWidgetKit.listWidgetMessages({
       widgetId: WIDGET_ID,
@@ -37,10 +43,18 @@ export async function takeWidgetLaunch(): Promise<string | null | undefined> {
     const opens = messages.filter((message) => message.name === 'open').sort((a, b) => a.createdAt - b.createdAt);
     const last = opens.at(-1);
     if (!last) return undefined;
-    await CapgoWidgetKit.acknowledgeWidgetMessages({ messageIds: opens.map((message) => message.messageId) });
     const appId = last.payload && typeof last.payload.appId === 'string' ? last.payload.appId : '';
-    return appId;
+    return { appId, messageIds: opens.map((message) => message.messageId) };
   } catch {
     return undefined;
+  }
+}
+
+export async function acknowledgeWidgetLaunch(messageIds: string[]): Promise<void> {
+  if (!messageIds.length) return;
+  try {
+    await CapgoWidgetKit.acknowledgeWidgetMessages({ messageIds });
+  } catch {
+    // Leave the message so the next check can open it.
   }
 }

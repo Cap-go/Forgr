@@ -29,6 +29,9 @@ struct OpenForgrToolIntent: AppIntent {
             payloadObject: ["appId": toolId],
             expectsResponse: false
         )
+        // openAppWhenRun runs this in the app process. The web view only hears resume
+        // when the app was in the background, so tell it directly when it is already open.
+        NotificationCenter.default.post(name: Notification.Name("ForgrWidgetDidRequestOpen"), object: nil)
         return .result()
     }
 }

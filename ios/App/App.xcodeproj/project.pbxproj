@@ -20,6 +20,8 @@
 		F0A11E0042FEA00100000004 /* OpenToolIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A11E0032FEA00100000003 /* OpenToolIntent.swift */; };
 		F0A11E0082FEA00100000008 /* ForgrWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F0A11E0072FEA00100000007 /* ForgrWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F0A11E0162FEA00100000016 /* CapgoWidgetKitShared in Frameworks */ = {isa = PBXBuildFile; productRef = F0A11E0152FEA00100000015 /* CapgoWidgetKitShared */; };
+		F0A11E0172FEA00100000017 /* OpenToolIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A11E0032FEA00100000003 /* OpenToolIntent.swift */; };
+		F0A11E0182FEA00100000018 /* CapgoWidgetKitShared in Frameworks */ = {isa = PBXBuildFile; productRef = F0A11E0192FEA00100000019 /* CapgoWidgetKitShared */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +49,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */,
+				F0A11E0182FEA00100000018 /* CapgoWidgetKitShared in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -127,6 +130,7 @@
 			name = App;
 			packageProductDependencies = (
 				4D22ABE82AF431CB00220026 /* CapApp-SPM */,
+				F0A11E0192FEA00100000019 /* CapgoWidgetKitShared */,
 			);
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
@@ -257,6 +261,7 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
+				F0A11E0172FEA00100000017 /* OpenToolIntent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -552,6 +557,11 @@
 			productName = "CapApp-SPM";
 		};
 		F0A11E0152FEA00100000015 /* CapgoWidgetKitShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F0A11E0142FEA00100000014 /* XCLocalSwiftPackageReference "capacitor-widget-kit" */;
+			productName = "CapgoWidgetKitShared";
+		};
+		F0A11E0192FEA00100000019 /* CapgoWidgetKitShared */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F0A11E0142FEA00100000014 /* XCLocalSwiftPackageReference "capacitor-widget-kit" */;
 			productName = "CapgoWidgetKitShared";

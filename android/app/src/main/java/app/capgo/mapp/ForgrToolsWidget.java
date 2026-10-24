@@ -7,10 +7,15 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.RemoteViews;
 import app.capgo.widgetkit.CapgoNativeWidgetBridge;
@@ -51,11 +56,15 @@ public class ForgrToolsWidget extends AppWidgetProvider {
         Bundle options = manager.getAppWidgetOptions(appWidgetId);
         String size = size(options);
         boolean open = layout.equals("open");
+        JSONArray tools = state.optJSONArray("tools");
+        boolean empty = !open && (tools == null || tools.length() == 0);
         views.setViewVisibility(R.id.open_panel, open ? View.VISIBLE : View.GONE);
-        views.setViewVisibility(R.id.grid, open ? View.GONE : View.VISIBLE);
+        views.setViewVisibility(R.id.grid, !open && !empty ? View.VISIBLE : View.GONE);
+        views.setViewVisibility(R.id.empty_label, empty ? View.VISIBLE : View.GONE);
         tint(views, R.id.open_panel, Color.parseColor("#2C2C2E"), R.drawable.widget_tile);
         views.setOnClickPendingIntent(R.id.open_panel, launch(context, appWidgetId, 0, ""));
-        if (!open) bindGrid(context, views, appWidgetId, layout, size, state.optJSONArray("tools"));
+        if (empty) views.setOnClickPendingIntent(R.id.empty_label, launch(context, appWidgetId, 0, ""));
+        if (!open && !empty) bindGrid(context, views, appWidgetId, layout, size, tools);
         manager.updateAppWidget(appWidgetId, views);
     }
 
@@ -82,13 +91,7 @@ public class ForgrToolsWidget extends AppWidgetProvider {
                 if (tool == null) continue;
                 rowUsed = true;
                 String name = tool.optString("name", "Tool");
-                views.setTextViewText(emojiId, tool.optString("emoji", "✨"));
-                views.setTextViewTextSize(emojiId, android.util.TypedValue.COMPLEX_UNIT_SP, side * 0.42f);
-                if (Build.VERSION.SDK_INT >= 31) {
-                    views.setViewLayoutWidth(emojiId, side, android.util.TypedValue.COMPLEX_UNIT_DIP);
-                    views.setViewLayoutHeight(emojiId, side, android.util.TypedValue.COMPLEX_UNIT_DIP);
-                }
-                tint(views, emojiId, color(tool.optString("color", "#8E8E93")), R.drawable.widget_icon);
+                views.setImageViewBitmap(emojiId, iconBitmap(context, tool.optString("emoji", "✨"), color(tool.optString("color", "#8E8E93")), side));
                 views.setTextViewText(nameId, name);
                 views.setViewVisibility(nameId, tiny ? View.GONE : View.VISIBLE);
                 views.setContentDescription(slot, name);
@@ -102,11 +105,29 @@ public class ForgrToolsWidget extends AppWidgetProvider {
 
     private static void tint(RemoteViews views, int viewId, int color, int background) {
         views.setInt(viewId, "setBackgroundResource", background);
+        // setBackgroundColor replaces the shape. Tint keeps the rounded tile on API 31+.
+        // Older releases use the color baked into the drawable.
         if (Build.VERSION.SDK_INT >= 31) {
             views.setColorStateList(viewId, "setBackgroundTintList", ColorStateList.valueOf(color));
-        } else {
-            views.setInt(viewId, "setBackgroundColor", color);
         }
+    }
+
+    /** Oval at `sideDp`. RemoteViews cannot resize a view before API 31, so the bitmap carries the size. */
+    private static Bitmap iconBitmap(Context context, String emoji, int color, float sideDp) {
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        int px = Math.max(1, Math.round(sideDp * metrics.density));
+        Bitmap bitmap = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888);
+        bitmap.setDensity(metrics.densityDpi);
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(color);
+        canvas.drawOval(new RectF(0, 0, px, px), paint);
+        paint.setColor(Color.BLACK);
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setTextSize(px * 0.42f);
+        Paint.FontMetrics font = paint.getFontMetrics();
+        canvas.drawText(emoji, px / 2f, px / 2f - (font.ascent + font.descent) / 2f, paint);
+        return bitmap;
     }
 
     private static PendingIntent launch(Context context, int appWidgetId, int slot, String appId) {
