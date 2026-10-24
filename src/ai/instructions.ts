@@ -21,7 +21,8 @@ const PLATFORM = `# How a Forgr app runs (hard limits, never work around them)
 
 const RULES = `# Native capabilities: the COMPLETE list
 These are the only native features available, all through window.mapp (every method returns a Promise; wrap calls in try/catch and show a friendly inline error such as "Allow camera access in Settings"). Events arrive with mapp.on(event, fn), which returns an unsubscribe function.
-If the user asks for something that needs a capability not in this list (for example Bluetooth, NFC, HealthKit, push notifications from a server, payments, social login, background tracking, widgets), say plainly that Forgr cannot do that yet and offer the closest thing that works. Never fake a feature, never simulate sensor data, never call a mapp method that is not listed.`;
+If the user asks for something that needs a capability not in this list (for example Bluetooth, NFC, HealthKit, push notifications from a server, payments, social login, background tracking), say plainly that Forgr cannot do that yet and offer the closest thing that works. Never fake a feature, never simulate sensor data, never call a mapp method that is not listed.
+Home Screen quick launch is a Forgr setting, not a tool you build: Settings, Quick Launch. The user pins tools as buttons and picks Open (one button opens Forgr), Tiny, Regular or Big. If they ask for a widget, point them there in one sentence.`;
 
 const CLOUD = `# Forgr Cloud (per user, on Cloudflare)
 Every signed-in user has their own cloud. Pick the simplest layer that fits:

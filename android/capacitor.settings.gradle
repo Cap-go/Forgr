@@ -107,11 +107,14 @@ project(':capgo-capacitor-updater').projectDir = new File('../node_modules/@capg
 include ':capgo-capacitor-volume-buttons'
 project(':capgo-capacitor-volume-buttons').projectDir = new File('../node_modules/@capgo/capacitor-volume-buttons/android')
 
+include ':capgo-capacitor-widget-kit'
+project(':capgo-capacitor-widget-kit').projectDir = new File('../node_modules/@capgo/capacitor-widget-kit/android')
+
+include ':capgo-http-stream'
+project(':capgo-http-stream').projectDir = new File('../node_modules/@capgo/http-stream/android')
+
 include ':capgo-oauth-loopback'
 project(':capgo-oauth-loopback').projectDir = new File('../node_modules/@capgo/oauth-loopback/android')
 
 include ':capacitor-secure-storage-plugin'
 project(':capacitor-secure-storage-plugin').projectDir = new File('../node_modules/capacitor-secure-storage-plugin/android')
-
-include ':capgo-http-stream'
-project(':capgo-http-stream').projectDir = new File('../node_modules/@capgo/http-stream/android')

@@ -44,9 +44,10 @@ dependencies {
     implementation project(':capgo-capacitor-speech-synthesis')
     implementation project(':capgo-capacitor-updater')
     implementation project(':capgo-capacitor-volume-buttons')
+    implementation project(':capgo-capacitor-widget-kit')
+    implementation project(':capgo-http-stream')
     implementation project(':capgo-oauth-loopback')
     implementation project(':capacitor-secure-storage-plugin')
-    implementation project(':capgo-http-stream')
 
 }
 

@@ -4,4 +4,6 @@
     <string name="title_activity_main">Forgr</string>
     <string name="package_name">app.capgo.mapp</string>
     <string name="custom_url_scheme">app.capgo.mapp</string>
+    <string name="widget_name">Forgr</string>
+    <string name="widget_description">Open your tools in one tap.</string>
 </resources>

@@ -4,7 +4,7 @@ import PackageDescription
 // DO NOT MODIFY THIS FILE - managed by Capacitor CLI commands
 let package = Package(
     name: "CapApp-SPM",
-    platforms: [.iOS(.v15)],
+    platforms: [.iOS(.v16)],
     products: [
         .library(
             name: "CapApp-SPM",
@@ -47,9 +47,10 @@ let package = Package(
         .package(name: "CapgoCapacitorSpeechSynthesis", path: "../../../node_modules/@capgo/capacitor-speech-synthesis"),
         .package(name: "CapgoCapacitorUpdater", path: "../../../node_modules/@capgo/capacitor-updater"),
         .package(name: "CapgoCapacitorVolumeButtons", path: "../../../node_modules/@capgo/capacitor-volume-buttons"),
+        .package(name: "CapgoCapacitorWidgetKit", path: "../../../node_modules/@capgo/capacitor-widget-kit"),
+        .package(name: "CapgoHttpStream", path: "../../../node_modules/@capgo/http-stream"),
         .package(name: "CapgoOauthLoopback", path: "../../../node_modules/@capgo/oauth-loopback"),
-        .package(name: "CapacitorSecureStoragePlugin", path: "../../../node_modules/capacitor-secure-storage-plugin"),
-        .package(name: "CapgoHttpStream", path: "../../../node_modules/@capgo/http-stream")
+        .package(name: "CapacitorSecureStoragePlugin", path: "../../../node_modules/capacitor-secure-storage-plugin")
     ],
     targets: [
         .target(
@@ -92,9 +93,10 @@ let package = Package(
                 .product(name: "CapgoCapacitorSpeechSynthesis", package: "CapgoCapacitorSpeechSynthesis"),
                 .product(name: "CapgoCapacitorUpdater", package: "CapgoCapacitorUpdater"),
                 .product(name: "CapgoCapacitorVolumeButtons", package: "CapgoCapacitorVolumeButtons"),
+                .product(name: "CapgoCapacitorWidgetKit", package: "CapgoCapacitorWidgetKit"),
+                .product(name: "CapgoHttpStream", package: "CapgoHttpStream"),
                 .product(name: "CapgoOauthLoopback", package: "CapgoOauthLoopback"),
-                .product(name: "CapacitorSecureStoragePlugin", package: "CapacitorSecureStoragePlugin"),
-                .product(name: "CapgoHttpStream", package: "CapgoHttpStream")
+                .product(name: "CapacitorSecureStoragePlugin", package: "CapacitorSecureStoragePlugin")
             ]
         )
     ]

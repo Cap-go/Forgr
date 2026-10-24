@@ -32,6 +32,9 @@ import { parseLink, type LinkAction } from '../links';
 import { showOnboarding } from './onboarding';
 import { h, icon } from './dom';
 import { DEVICE, SECURE_STORE } from '../platform';
+import { loadWidgetConfig, saveWidgetConfig, type WidgetSize } from '../widget/layout';
+import { syncWidget, takeWidgetLaunch } from '../widget/sync';
+import { buildWidgetSettings } from './widget-sheet';
 
 const HOME_CHAT = 'home';
 
@@ -97,6 +100,7 @@ export class Shell {
     appStore.onChange(() => {
       this.renderHome();
       if (!this.switcher.classList.contains('hidden')) this.renderSwitcher();
+      void syncWidget(appStore.list());
     });
     session.onChange(() => this.renderHome());
     this.renderHome();
@@ -106,7 +110,10 @@ export class Shell {
     // Tell the open mini app when Forgr leaves or returns to the screen.
     lifecycle.onChange((active) => {
       this.frame?.contentWindow?.postMessage({ __mapp: 'event', name: active ? 'app.resume' : 'app.pause', payload: { at: Date.now() } }, '*');
+      if (active) void this.openFromWidget();
     });
+    void syncWidget(appStore.list());
+    void this.openFromWidget();
 
     if (Capacitor.isNativePlatform()) {
       // A live update finished downloading: offer to restart into it now.
@@ -1215,6 +1222,14 @@ export class Shell {
               h('button', { class: 'text-btn danger', 'aria-label': `Delete ${sec.name}`, onclick: async () => { await deleteSecret(sec.name); close(); this.toast(`Deleted ${sec.name}`); } }, 'Delete')))
             : [h('div', { class: 'row' }, h('span', { class: 'row-sub' }, 'No saved keys or passwords yet.'))])),
         h('p', { class: 'group-footer' }, `Stored in the ${SECURE_STORE}. The AI never sees them; your tools use them when they call their service.`),
+        h('div', { class: 'section-label' }, 'Home Screen'),
+        h('div', { class: 'group' },
+          h('button', { class: 'row', onclick: () => { close(); this.showWidget(); } },
+            icon('widget', 'icon'),
+            h('div', { class: 'row-body' },
+              h('span', { class: 'row-title' }, 'Quick Launch'),
+              h('span', { class: 'row-sub' }, 'Pin tools on a Home Screen widget')),
+            icon('chevron', 'icon row-icon'))),
         h('div', { class: 'section-label' }, 'Gestures'),
         h('div', { class: 'group' },
           h('button', { class: 'row', onclick: () => { close(); this.showOnboarding(); } }, h('span', { class: 'row-title' }, 'Show the Tour Again'), icon('chevron', 'icon row-icon'))),
@@ -1234,6 +1249,49 @@ export class Shell {
           checkBtn),
       ];
     });
+  }
+
+  /** Home Screen widget: pick tools and how large the buttons are. */
+  showWidget(): void {
+    let size: WidgetSize = 'medium';
+    this.showModal((close) => {
+      const body = h('div', {});
+      const paint = () => {
+        body.replaceChildren(buildWidgetSettings({
+          apps: appStore.list(),
+          config: loadWidgetConfig(),
+          size,
+          onSize: (next) => {
+            size = next;
+            paint();
+          },
+          onConfig: (config, notice) => {
+            saveWidgetConfig(config);
+            void syncWidget(appStore.list());
+            if (notice) this.toast(notice);
+            paint();
+          },
+        }));
+      };
+      paint();
+      return [
+        h('header', { class: 'modal-nav' },
+          h('span', {}),
+          h('h2', {}, 'Quick Launch'),
+          h('button', { class: 'text-btn strong', onclick: close }, 'Done')),
+        body,
+      ];
+    });
+  }
+
+  private async openFromWidget(): Promise<void> {
+    const appId = await takeWidgetLaunch();
+    if (appId === undefined || document.body.classList.contains('onboarding-open')) return;
+    if (!appId) {
+      if (this.currentAppId) this.goHome();
+      return;
+    }
+    if (appStore.get(appId) && this.currentAppId !== appId) await this.openApp(appId);
   }
 
   private showOnboarding(): void {
