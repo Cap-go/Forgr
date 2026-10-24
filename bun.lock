@@ -28,9 +28,9 @@
         "@capgo/capacitor-contacts": "^8",
         "@capgo/capacitor-date-picker": "^8",
         "@capgo/capacitor-device-info": "^8",
-        "@capgo/capacitor-document-scanner": "^8",
+        "@capgo/capacitor-document-scanner": "^8.4.15",
         "@capgo/capacitor-flash": "^8",
-        "@capgo/capacitor-inappbrowser": "^8.22.4",
+        "@capgo/capacitor-inappbrowser": "8.26.2",
         "@capgo/capacitor-keep-awake": "^8",
         "@capgo/capacitor-launch-navigator": "^8",
         "@capgo/capacitor-native-biometric": "^8",
@@ -121,11 +121,11 @@
 
     "@capgo/capacitor-device-info": ["@capgo/capacitor-device-info@8.0.14", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-rkAg+BK7TtXar3YB7S/REzoy65oeL0jHkONh2NF0y6NYkM7HBc8caW6NO+CL2NvXpw6Ts4SQpgdbYEhlGU0xjA=="],
 
-    "@capgo/capacitor-document-scanner": ["@capgo/capacitor-document-scanner@8.4.10", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-H001XVTGI4H8Ic8JckWTOaLafWW+sBfsJloU0J4imb7df/huOAzAkUNt0ckbrAjldnHEq6qHYtEnmEJCSXZFAw=="],
+    "@capgo/capacitor-document-scanner": ["@capgo/capacitor-document-scanner@8.4.15", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-KBenugyvoWwk4U/m/NU3FuEEcOZ7WPBlw+9KYwFu7Y7HjeUId3dFfMKLXJ+0I00klalXn+8/IRawqGnHY1KODA=="],
 
     "@capgo/capacitor-flash": ["@capgo/capacitor-flash@8.0.45", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-gjWk/7Wlv3gd1evakyaTSB5pMupsVAKjd4Oy121+OKAqGUSJxcRl/uuwIHMJ5wQDbtml3xS5d+3Q6IsCVMga9A=="],
 
-    "@capgo/capacitor-inappbrowser": ["@capgo/capacitor-inappbrowser@8.22.4", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-eE3hB60rM+q0vOQiCWA0HyusVQIuic4VadX9iDOc+7ierWLcYA/c1ONlyoqoAqshJ7ZGNKAx/4peFD3abNOkkw=="],
+    "@capgo/capacitor-inappbrowser": ["@capgo/capacitor-inappbrowser@8.26.2", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-l7Q5pWM+ABIs+nIBpi5pXsbGjFavnsqZ+fkfdAm+jpAets4gXRQmDQSE6O4pxAre22GoISJplUtnaIxU7lZwHQ=="],
 
     "@capgo/capacitor-keep-awake": ["@capgo/capacitor-keep-awake@8.1.18", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-AYylZctfD/JcuNX2XAQYmX9v9d5BqnHzQ/eSjHV/zgKaWj4IodJLRl03ZmbbjTCzda32JJtmEnqN4HY4WTb9Mg=="],
 
