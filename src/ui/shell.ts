@@ -1,4 +1,5 @@
 import { App as CapApp } from '@capacitor/app';
+import { NativeNavigation } from '@capgo/capacitor-native-navigation';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -9,7 +10,7 @@ import { buildInstructions } from '../ai/instructions';
 import { session } from '../ai/session';
 import type { ChatMessage } from '../ai/types';
 import { AppBridge, clearLogs } from '../apps/bridge';
-import { buildSrcdoc, syncSafeArea, type SafeArea } from '../apps/runtime';
+import { buildSrcdoc, measureSafeArea, syncSafeArea, type SafeArea } from '../apps/runtime';
 import { cloud, memberName } from '../cloud/client';
 import { appStore, type MiniAppMeta } from '../apps/store';
 import { STARTER_APPS } from '../apps/templates';
@@ -35,6 +36,7 @@ import { DEVICE, SECURE_STORE } from '../platform';
 import { loadWidgetConfig, saveWidgetConfig, type WidgetSize } from '../widget/layout';
 import { acknowledgeWidgetLaunch, peekWidgetLaunch, syncWidget } from '../widget/sync';
 import { buildWidgetSettings } from './widget-sheet';
+import { nativeNavigationState } from './native-navigation-state';
 
 const HOME_CHAT = 'home';
 
@@ -85,11 +87,58 @@ export class Shell {
 
   constructor(private readonly root: HTMLElement) {}
 
+  private nativeNavigationReady = false;
+  private nativeNavigationKey = '';
+  private nativeNavigationPending: Promise<void> = Promise.resolve();
+
+  private async initNativeNavigation(): Promise<void> {
+    if (Capacitor.getPlatform() !== 'ios' || !Capacitor.isPluginAvailable('NativeNavigation')) return;
+    try {
+      await NativeNavigation.addListener('tabSelect', ({ id }) => {
+        if (id === 'home') this.goHome();
+        else if (id === 'settings') this.showSettings();
+        else if (id.startsWith('tool:')) {
+          const appId = id.slice(5);
+          if (appStore.get(appId) && appId !== this.currentAppId) void this.openApp(appId);
+        }
+      });
+      await NativeNavigation.configure({ contentInsetMode: 'css' });
+      await NativeNavigation.setNavbar({ hidden: true });
+      this.nativeNavigationReady = true;
+      this.renderHome();
+    } catch {
+      this.toast('Native navigation is unavailable. Use the tool grid to switch.');
+    }
+  }
+
+  private syncNativeNavigation(): void {
+    if (!this.nativeNavigationReady) return;
+    const hidden = this.sheetOpen || !this.modalLayer.classList.contains('hidden')
+      || !this.switcher.classList.contains('hidden') || document.body.classList.contains('onboarding-open');
+    const state = nativeNavigationState(appStore.list(), this.currentAppId, hidden);
+    const key = JSON.stringify(state);
+    if (key === this.nativeNavigationKey) return;
+    this.nativeNavigationKey = key;
+    this.nativeNavigationPending = this.nativeNavigationPending
+      .then(async () => { await NativeNavigation.setTabbar(state); })
+      .catch(() => {
+        this.nativeNavigationKey = '';
+        this.toast('Could not update native navigation.');
+      });
+  }
+
   async init(): Promise<void> {
     this.measureSafeArea();
     this.root.append(this.home, this.stage, this.switcher, this.bubble, this.buildChatSheet(), this.modalLayer, this.toastEl);
     this.buildSheet();
     this.setupBubble();
+    window.addEventListener('resize', () => {
+      this.measureSafeArea();
+      this.bubble.style.removeProperty('left');
+      this.bubble.style.removeProperty('top');
+      this.bubble.style.removeProperty('right');
+      this.bubble.style.removeProperty('bottom');
+    });
     new PinchDetector(document, (dir) => {
       if (dir === 'in') this.openSwitcher();
       else if (dir === 'out') this.closeSwitcher();
@@ -140,21 +189,13 @@ export class Shell {
     }
 
     if (!localStorage.getItem(PREF_KEYS.onboarded)) this.showOnboarding();
+    await this.initNativeNavigation();
   }
 
   // ---------------------------------------------------------------- setup
 
   private measureSafeArea(): void {
-    const probe = h('div', { class: 'safe-probe' });
-    document.body.append(probe);
-    const style = getComputedStyle(probe);
-    this.safe = {
-      top: parseFloat(style.paddingTop) || 0,
-      right: parseFloat(style.paddingRight) || 0,
-      bottom: parseFloat(style.paddingBottom) || 0,
-      left: parseFloat(style.paddingLeft) || 0,
-    };
-    probe.remove();
+    this.safe = measureSafeArea();
   }
 
   private async seed(): Promise<void> {
@@ -168,6 +209,7 @@ export class Shell {
   // ---------------------------------------------------------------- home
 
   private renderHome(): void {
+    this.syncNativeNavigation();
     const apps = appStore.list();
     const email = session.credentials?.email;
     const avatar = h('button', { class: 'avatar', 'aria-label': 'Account and settings', onclick: () => this.showSettings() },
@@ -186,7 +228,8 @@ export class Shell {
       grid,
       apps.length < 4
         ? h('p', { class: 'footnote home-note' }, apps.length
-          ? 'Tap to open, hold for options. In any tool, pinch with three fingers to come back.'
+          ? this.nativeNavigationReady ? 'Switch tools with the native sidebar or tabs. Hold a tool for options.'
+            : 'Tap to open, hold for options. In any tool, pinch with three fingers to come back.'
           : 'Describe a tool below and it appears here.')
         : '',
       h('div', { class: 'composer-bar' },
@@ -420,6 +463,7 @@ export class Shell {
     this.stage.classList.add('shrunk');
     this.sheet.classList.add('behind');
     this.bubble.classList.add('behind');
+    this.syncNativeNavigation();
   }
 
   closeSwitcher(instant = false): void {
@@ -429,6 +473,7 @@ export class Shell {
     this.stage.classList.remove('shrunk');
     this.sheet.classList.remove('behind');
     this.bubble.classList.remove('behind');
+    this.syncNativeNavigation();
   }
 
   private renderSwitcher(): void {
@@ -509,6 +554,7 @@ export class Shell {
     let ox = 0;
     let oy = 0;
     this.bubble.addEventListener('touchstart', (e) => {
+      this.measureSafeArea();
       const t = e.touches[0];
       const rect = this.bubble.getBoundingClientRect();
       sx = t.clientX;
@@ -522,8 +568,8 @@ export class Shell {
       if (!dragging && Math.hypot(t.clientX - sx, t.clientY - sy) < 8) return;
       dragging = true;
       e.preventDefault();
-      const x = Math.min(window.innerWidth - 64, Math.max(8, ox + t.clientX - sx));
-      const y = Math.min(window.innerHeight - 64, Math.max(this.safe.top + 8, oy + t.clientY - sy));
+      const x = Math.min(window.innerWidth - this.safe.right - 64, Math.max(this.safe.left + 8, ox + t.clientX - sx));
+      const y = Math.min(window.innerHeight - this.safe.bottom - 64, Math.max(this.safe.top + 8, oy + t.clientY - sy));
       this.bubble.style.left = `${x}px`;
       this.bubble.style.top = `${y}px`;
       this.bubble.style.right = 'auto';
@@ -533,7 +579,8 @@ export class Shell {
       if (!dragging) return;
       // Snap to the nearest side like a native floating button.
       const rect = this.bubble.getBoundingClientRect();
-      const left = rect.left + rect.width / 2 < window.innerWidth / 2 ? 12 : window.innerWidth - rect.width - 12;
+      const left = rect.left + rect.width / 2 < window.innerWidth / 2
+        ? this.safe.left + 12 : window.innerWidth - this.safe.right - rect.width - 12;
       this.bubble.style.left = `${left}px`;
     });
     this.bubble.addEventListener('click', () => {
@@ -640,6 +687,7 @@ export class Shell {
   }
 
   private updateChrome(): void {
+    this.syncNativeNavigation();
     const app = this.currentAppId ? appStore.get(this.currentAppId) : undefined;
     this.sheetTitle.replaceChildren(app ? app.name : 'New Tool');
     this.undoBtn.classList.toggle('hidden', !app);
@@ -1083,12 +1131,14 @@ export class Shell {
         if (this.modalLayer.contains(sheet)) {
           this.modalLayer.replaceChildren();
           this.modalLayer.classList.add('hidden');
+          this.syncNativeNavigation();
         }
         portal.remove();
       }, 400);
     });
     this.modalLayer.append(sheet);
     this.modalLayer.classList.remove('hidden');
+    this.syncNativeNavigation();
     requestAnimationFrame(() => sheet.present());
   }
 
@@ -1301,6 +1351,7 @@ export class Shell {
     if (!sheet) return;
     sheet.dismiss();
     this.modalLayer.classList.add('hidden');
+    this.syncNativeNavigation();
   }
 
   /** Opens the tool a widget button asked for. False when nothing was waiting, or the tour is still up. */
@@ -1326,12 +1377,14 @@ export class Shell {
   private showOnboarding(): void {
     void showOnboarding(this.root).then(async (connect) => {
       localStorage.setItem(PREF_KEYS.onboarded, '1');
+      this.syncNativeNavigation();
       const queued = this.pendingLink;
       this.pendingLink = null;
       const opened = await this.openFromWidget();
       if (queued) await this.runLink(queued);
       if (!opened && !queued && connect && !session.signedIn) this.showSignIn();
     });
+    this.syncNativeNavigation();
   }
 
   /** Asks Capgo for the channel's bundle now and installs it (delta when possible). */

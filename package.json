@@ -41,6 +41,7 @@
     "@capgo/capacitor-keep-awake": "^8",
     "@capgo/capacitor-launch-navigator": "^8",
     "@capgo/capacitor-native-biometric": "^8",
+    "@capgo/capacitor-native-navigation": "^8.14.0",
     "@capgo/capacitor-nativegeocoder": "^8",
     "@capgo/capacitor-pdf-generator": "^8",
     "@capgo/capacitor-pedometer": "^8",

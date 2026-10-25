@@ -191,7 +191,8 @@ export function runtimeSource(): string {
 export function measureSafeArea(): SafeArea {
   const probe = document.createElement('div');
   probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;' +
-    'padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+    'padding:var(--safe-top,env(safe-area-inset-top)) var(--safe-right,env(safe-area-inset-right)) ' +
+    'var(--safe-bottom,env(safe-area-inset-bottom)) var(--safe-left,env(safe-area-inset-left))';
   document.body.append(probe);
   const style = getComputedStyle(probe);
   const safe = {
@@ -229,10 +230,12 @@ export function syncSafeArea(frame: HTMLIFrameElement): () => void {
   };
   frame.addEventListener('load', onLoad);
   window.addEventListener('resize', post);
+  window.addEventListener('capNativeNavigation:safeAreaChanged', post);
   const timer = window.setInterval(post, 1500);
   return () => {
     frame.removeEventListener('load', onLoad);
     window.removeEventListener('resize', post);
+    window.removeEventListener('capNativeNavigation:safeAreaChanged', post);
     window.clearInterval(timer);
   };
 }

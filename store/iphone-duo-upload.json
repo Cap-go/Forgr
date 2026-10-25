@@ -1,0 +1,21 @@
+{
+  "appId": "6821593688",
+  "bundleId": "app.capgo.mapp",
+  "version": "1.0",
+  "locale": "en-US",
+  "versionLocalizationId": "686c3ef5-02b7-46b6-be81-e8003cfee05b",
+  "screenshotSetId": "7b36fb45-807e-45d5-92c0-774d495bc74e",
+  "displayType": "APP_IPHONE_DUO",
+  "cli": "asc 5.16.1",
+  "verifiedAt": "2026-10-25T10:42:06.594Z",
+  "existingSetsUnchanged": ["APP_IPHONE_65", "APP_IPHONE_67"],
+  "submittedForReview": false,
+  "screenshots": [
+    { "id": "6a000019-6994-8258-801d-4534d4ae76d6", "file": "01-home-unfolded.png", "md5": "41781df2c9603ddbd025def2eb7d12bd", "state": "COMPLETE", "width": 2853, "height": 2007 },
+    { "id": "ee800019-6994-8258-8015-cf0ab90097e5", "file": "02-habits-unfolded.png", "md5": "414da93f700269e9f0ef52296ae0d7df", "state": "COMPLETE", "width": 2853, "height": 2007 },
+    { "id": "4e000019-6994-8258-8034-5b94f428a015", "file": "03-tip-split-unfolded.png", "md5": "b888a515ce74c42e8fda8394f26f1064", "state": "COMPLETE", "width": 2853, "height": 2007 },
+    { "id": "ff800019-6994-8258-801f-2b11ab41268b", "file": "04-tip-split-cover.png", "md5": "f8d411d4287c4025690c79f523157a8c", "state": "COMPLETE", "width": 1398, "height": 2034 },
+    { "id": "94000019-6994-8258-801f-a46b594b723a", "file": "05-focus-unfolded.png", "md5": "afab6b76253a75ae82b29204aa7b07e7", "state": "COMPLETE", "width": 2853, "height": 2007 },
+    { "id": "88c00019-6994-8258-801c-4374f49a4e34", "file": "06-home-cover.png", "md5": "9d6083c9cd779ea81524dd8c8ab17f5a", "state": "COMPLETE", "width": 1398, "height": 2034 }
+  ]
+}

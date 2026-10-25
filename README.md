@@ -59,3 +59,34 @@ bun shoot-store.mjs      # raw 1320x2868 screens (store demo mode)
 bun frame-store.mjs      # framed 6.9" and 6.5" screenshots
 bun record-preview.mjs   # preview footage, then encode with ffmpeg (see git log)
 ```
+
+### iPhone Duo
+
+`@capgo/capacitor-native-navigation` provides the real UIKit tool navigation.
+Its automatic placement uses the system sidebar on the Duo, with UIKit adapting
+navigation between displays. Selecting a tool preserves its own conversation.
+Web sheets and onboarding temporarily hide the native chrome. Plugin insets
+are applied to both the shell and running mini apps.
+
+The shell supports portrait and landscape, with an adaptive tool grid and
+side-by-side onboarding. Folding resets the floating chat button into the
+current screen's safe area. WebKit layout checks can be run with the dev
+server on port 5181 using `cd store/tools && bun check-iphone-duo.mjs`.
+
+`store/screenshots/iphone-duo` contains unframed captures from the installed
+native app on the iOS 27.1 simulator, with no store-demo mode. Cover captures
+are 1398×2034 and unfolded captures are 2853×2007. See
+`store/iphone-duo.md` and `store/iphone-duo-upload.json` for provenance and
+App Store Connect status.
+
+Upload through the App Store Connect CLI using the existing authenticated
+Keychain profile:
+
+```bash
+asc screenshots validate --path store/screenshots/iphone-duo --device-type IPHONE_DUO
+asc screenshots upload --app 6821593688 --version 1.0 --locale en-US \
+  --path store/screenshots/iphone-duo --device-type IPHONE_DUO --skip-existing
+```
+
+This uploads screenshots to the draft listing without submitting it for review.
+The existing 6.5-inch and 6.9-inch screenshot sets are not replaced.

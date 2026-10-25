@@ -34,6 +34,7 @@
         "@capgo/capacitor-keep-awake": "^8",
         "@capgo/capacitor-launch-navigator": "^8",
         "@capgo/capacitor-native-biometric": "^8",
+        "@capgo/capacitor-native-navigation": "^8.14.0",
         "@capgo/capacitor-nativegeocoder": "^8",
         "@capgo/capacitor-pdf-generator": "^8",
         "@capgo/capacitor-pedometer": "^8",
@@ -132,6 +133,8 @@
     "@capgo/capacitor-launch-navigator": ["@capgo/capacitor-launch-navigator@8.1.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-4SJ4/FO6DpUiQi6UDCXyd81GmU/RpuYli16gg3hLvWVXnV9+7RboBdAN1YTivJibcRlF0PXFFmjk585cy22sPQ=="],
 
     "@capgo/capacitor-native-biometric": ["@capgo/capacitor-native-biometric@8.8.1", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-bow7Eyp4sVdp7jvQl1ioDA4c489fAoPoji2Nlms13gY5wu6ydTy70RG9fgAstkM2YJhHPOx7hJD7UWLS8weU7w=="],
+
+    "@capgo/capacitor-native-navigation": ["@capgo/capacitor-native-navigation@8.14.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-U/U4LsvnHJwa4kMFnQP/5LuvZ6xCUbFwE1KZqQz30bf/rSqJFUG0Gth3Kajh4an/W66oy3knxVTSkIqxpLcwxA=="],
 
     "@capgo/capacitor-nativegeocoder": ["@capgo/capacitor-nativegeocoder@8.0.54", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-8ZzGoPw4vWsVnQY6VE42CrS/AhsolzE4SP5I07aWamVraft53ivIdsXVGvQKzchNlyECg6k1RXFpJ6gpLQoCJw=="],
 

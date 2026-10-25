@@ -1,0 +1,60 @@
+{
+  "bundleId": "app.capgo.mapp",
+  "displayType": "APP_IPHONE_DUO",
+  "simulator": "Forgr iPhone Duo QA",
+  "udid": "23138453-87E3-47D1-852C-1FD60EB112BF",
+  "os": "iOS 27.1",
+  "appVersion": "1.3.6",
+  "captureMethod": "agent-device screenshot --pixel-density 3 --normalize-status-bar",
+  "conversion": "Removed fully opaque alpha channel only. ImageMagick AE comparison confirms zero changed pixels.",
+  "files": [
+    {
+      "file": "01-home-unfolded.png",
+      "width": 2853,
+      "height": 2007,
+      "captureSha256": "a5e62476283853b2b9a1753bbe17a3e07303a547875cce9b573fc807e310339d",
+      "uploadSha256": "f475fc5b8189bae0b5f09091dcfbb937821073a5fada59d9ae8c7c0360425c66",
+      "changedPixels": 0
+    },
+    {
+      "file": "02-habits-unfolded.png",
+      "width": 2853,
+      "height": 2007,
+      "captureSha256": "2fe17e8a8bb692311ad2d23825127dd6faaa4dce99365117c2821edebbfd644e",
+      "uploadSha256": "f68515fd798c0d44f7c83e87f8e53c1e7a0b5e374570cbc19380680029ece755",
+      "changedPixels": 0
+    },
+    {
+      "file": "03-tip-split-unfolded.png",
+      "width": 2853,
+      "height": 2007,
+      "captureSha256": "a0f30216303a65463127876482e180990cc4b72042b4cfa25e2e408c8393f832",
+      "uploadSha256": "d6d08e6206e3773cbdfcaf1dbdc3437c08fd7ddec0a6f0f28174375d4f6f4be6",
+      "changedPixels": 0
+    },
+    {
+      "file": "04-tip-split-cover.png",
+      "width": 1398,
+      "height": 2034,
+      "captureSha256": "afc251e8bc773d426a1e6ff12dd8e127a9223b64980db8ef93af0dc366eccd68",
+      "uploadSha256": "f17dc7e8e839af7122055b57711aef783cb586171d21794c261d1ede50b874ab",
+      "changedPixels": 0
+    },
+    {
+      "file": "05-focus-unfolded.png",
+      "width": 2853,
+      "height": 2007,
+      "captureSha256": "4ad110a85536179e7999ef5379b7b2bf9211ec1b5076fa70e91fe0e7150d35fa",
+      "uploadSha256": "33309f05d97cee28870df03c44f7b3f0d0a5eaffe8dc87b0c4fbc407b70faf9e",
+      "changedPixels": 0
+    },
+    {
+      "file": "06-home-cover.png",
+      "width": 1398,
+      "height": 2034,
+      "captureSha256": "679f44047fdec3b79dc3c42b419461b60ac2e754864f8fd0f237b97bc46f4e09",
+      "uploadSha256": "53506f3e18b91e45a87531a182aa0dc3376b4838fe6efbf091f8f3bdf3973018",
+      "changedPixels": 0
+    }
+  ]
+}
