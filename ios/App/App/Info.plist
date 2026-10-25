@@ -51,6 +51,8 @@
 	<string>Your apps can read your contacts when you ask them to, for example to remember birthdays.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Your apps can use Face ID when you ask them to, for example to lock your private journal.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Your apps can use your location when you ask them to, for example to show nearby places or weather.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your apps can use your location when you ask them to, for example to show nearby places or weather.</string>
 	<key>NSMicrophoneUsageDescription</key>
