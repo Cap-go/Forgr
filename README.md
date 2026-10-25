@@ -63,8 +63,10 @@ bun record-preview.mjs   # preview footage, then encode with ffmpeg (see git log
 ### iPhone Duo
 
 `@capgo/capacitor-native-navigation` provides the real UIKit tool navigation.
-Its automatic placement uses the system sidebar on the Duo, with UIKit adapting
-navigation between displays. Selecting a tool preserves its own conversation.
+The native sidebar is enabled only in expanded layouts, with both viewport
+dimensions at least 600 points. Regular iPhones and the folded Duo keep the
+original bar-free interface, including in phone landscape. Selecting a tool
+preserves its own conversation.
 Web sheets and onboarding temporarily hide the native chrome. Plugin insets
 are applied to both the shell and running mini apps.
 

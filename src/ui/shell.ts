@@ -36,7 +36,7 @@ import { DEVICE, SECURE_STORE } from '../platform';
 import { loadWidgetConfig, saveWidgetConfig, type WidgetSize } from '../widget/layout';
 import { acknowledgeWidgetLaunch, peekWidgetLaunch, syncWidget } from '../widget/sync';
 import { buildWidgetSettings } from './widget-sheet';
-import { nativeNavigationState } from './native-navigation-state';
+import { nativeNavigationState, supportsNativeSidebar } from './native-navigation-state';
 
 const HOME_CHAT = 'home';
 
@@ -88,6 +88,7 @@ export class Shell {
   constructor(private readonly root: HTMLElement) {}
 
   private nativeNavigationReady = false;
+  private nativeSidebarExpanded = supportsNativeSidebar({ width: window.innerWidth, height: window.innerHeight });
   private nativeNavigationKey = '';
   private nativeNavigationPending: Promise<void> = Promise.resolve();
 
@@ -115,12 +116,16 @@ export class Shell {
     if (!this.nativeNavigationReady) return;
     const hidden = this.sheetOpen || !this.modalLayer.classList.contains('hidden')
       || !this.switcher.classList.contains('hidden') || document.body.classList.contains('onboarding-open');
-    const state = nativeNavigationState(appStore.list(), this.currentAppId, hidden);
+    const state = nativeNavigationState(appStore.list(), this.currentAppId, hidden, this.nativeSidebarExpanded);
+    const expanded = this.nativeSidebarExpanded;
     const key = JSON.stringify(state);
     if (key === this.nativeNavigationKey) return;
     this.nativeNavigationKey = key;
     this.nativeNavigationPending = this.nativeNavigationPending
-      .then(async () => { await NativeNavigation.setTabbar(state); })
+      .then(async () => {
+        await NativeNavigation.configure({ enabled: expanded, contentInsetMode: 'css' });
+        await NativeNavigation.setTabbar(state);
+      })
       .catch(() => {
         this.nativeNavigationKey = '';
         this.toast('Could not update native navigation.');
@@ -133,6 +138,11 @@ export class Shell {
     this.buildSheet();
     this.setupBubble();
     window.addEventListener('resize', () => {
+      const expanded = supportsNativeSidebar({ width: window.innerWidth, height: window.innerHeight });
+      if (expanded !== this.nativeSidebarExpanded) {
+        this.nativeSidebarExpanded = expanded;
+        this.renderHome();
+      }
       this.measureSafeArea();
       this.bubble.style.removeProperty('left');
       this.bubble.style.removeProperty('top');
@@ -228,7 +238,7 @@ export class Shell {
       grid,
       apps.length < 4
         ? h('p', { class: 'footnote home-note' }, apps.length
-          ? this.nativeNavigationReady ? 'Switch tools with the native sidebar or tabs. Hold a tool for options.'
+          ? this.nativeNavigationReady && this.nativeSidebarExpanded ? 'Switch tools with the native sidebar. Hold a tool for options.'
             : 'Tap to open, hold for options. In any tool, pinch with three fingers to come back.'
           : 'Describe a tool below and it appears here.')
         : '',

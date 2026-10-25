@@ -7,16 +7,21 @@ const TOOL_SYMBOLS: Readonly<Record<string, string>> = {
   Focus: 'timer',
 };
 
+export function supportsNativeSidebar(viewport: { width: number; height: number }): boolean {
+  return Math.min(viewport.width, viewport.height) >= 600;
+}
+
 export function nativeNavigationState(
   apps: readonly Pick<MiniAppMeta, 'id' | 'name'>[],
   currentAppId: string | null,
   hidden: boolean,
+  expanded: boolean,
 ): NativeNavigationTabbarOptions {
   return {
-    hidden,
-    animated: true,
+    hidden: hidden || !expanded,
+    animated: hidden && expanded,
     selectedId: currentAppId ? `tool:${currentAppId}` : 'home',
-    style: { placement: 'auto', shape: 'floating' },
+    style: { placement: 'sidebar', shape: 'floating' },
     colors: { dynamic: true },
     labelVisibilityMode: 'labeled',
     tabs: [
